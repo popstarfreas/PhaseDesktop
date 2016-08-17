@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+
+<head>
+  <link href='https://fonts.googleapis.com/css?family=Slabo+27px|Open+Sans:400italic,700italic,400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="stylesheets/login.css" />
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Francois+One' rel='stylesheet' type='text/css'>
+</head>
+
+<body>
+<script>require('electron-cookies')</script>
+  <div id="login_main">
+    <div class="loading"></div>
+    <div id="login_appname">
+      <h1>Phase</h1>
+    </div>
+    <div id="login_container">
+      <div id="login_information">
+        <b>Welcome!</b> Please use your In-Game User/Pass
+      </div>
+      <form id="login_form">
+        <div id="inputLabel_username">Username</div>
+        <input id="username" type="text" />
+        <div id="inputLabel_password">Password</div>
+        <input id="password" type="password" />
+        <br />
+        <div id="inputLabel_server">Server</div>
+        <select id="servername" name="server">
+          <option value="Dark Gaming">Dark Gaming</option>
+        </select>
+
+        <input id="submit" type="submit" value="Login" />
+      </form>
+    </div>
+  </div>
+
+  <script>require('./js/login.js');</script>
+</body>
+
+</html>
