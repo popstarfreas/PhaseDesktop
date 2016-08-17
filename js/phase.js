@@ -2137,16 +2137,24 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
   /* Handling Users Online/Offline */
   function refreshList() {
     // master div
-    var section = $('#people-section-phase');
-    var sectionList = section.children(".people-section-list").children('ul');
+    var section = $('#phase-main-people');
+    var sectionList = section.children("#people-phase");
     sectionList.html('');
 
     var formatName;
     var avatar;
     for (var i = 0; i < users.length; i++) {
       avatar = typeof updatedAvatars[users[i].UserID] !== 'undefined' ? updatedAvatars[users[i].UserID] : typeof users[i].Avatar !== 'undefined' ? users[i].Avatar : '/img/default.png';
+      avatar = avatar.replace(/^\//, 'https://t.dark-gaming.com:3001/');
       formatName = users[i].systemName !== mySystemName ? htmlspecialchars(users[i].name) + "<i>@" + users[i].systemName + "</i>" : htmlspecialchars(users[i].name);
-      sectionList.append('<li><div class="people_user_avatar"><img class="avatar_' + users[i].UserID + '" src="' + avatar + '"/></div><div class="people_user_right"><span class="people-username">' + formatName + '</span></div><i class="fa fa-circle" data-toggle="tooltip" data-placement="left" title="Online"></i></li>');
+      //sectionList.append('<li><div class="people_user_avatar"><img class="avatar_' + users[i].UserID + '" src="' + avatar + '"/></div><div class="people_user_right"><span class="people-username">' + formatName + '</span></div><i class="fa fa-circle" data-toggle="tooltip" data-placement="left" title="Online"></i></li>');
+      sectionList.append(`<div class="people-entry">
+            <div class="people-entry-avatar"><img class="${users[i].UserID}" src="${avatar}" /></div>
+            <div class="people-entry-username">${formatName}</div>
+            <div class="people-entry-icons">
+              <i class="fa fa-circle people-entry-icons-online" data-toggle="tooltip" data-placement="left" title="" data-original-title="Online"></i>
+            </div>
+          </div>`);
     }
 
     $('#people-section-phase-count').text(users.length);
@@ -3769,7 +3777,9 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     }
 
     // Replace begining / 
-    avatar = avatar.replace(/^\//, 'https://t.dark-gaming.com:3001/');
+    if (avatar) {
+      avatar = avatar.replace(/^\//, 'https://t.dark-gaming.com:3001/');
+    }
 
     var formattedMessage = formatChatMessage(messageTag, messageTagColour, uid, username, msg, accountName, guest, Math.floor(Date.now() / 1000), systemName, avatar, null, notified, messageIP);
 

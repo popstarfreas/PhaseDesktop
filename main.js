@@ -22,7 +22,7 @@ var mainWindow;
 
 function createWindow() {
   // Create the browser window.
-  mainWindow = new BrowserWindow({ show: false, transparent: true, frame: false });
+  mainWindow = new BrowserWindow({ show: false});
 
   // Remove the toolbar menu
   mainWindow.setMenu(null);

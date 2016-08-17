@@ -291,6 +291,10 @@
   font-size: 15px
 }
 
+#phase-content #phase-main #phase-main-chat #phase-main-chat-messages .chat-message .chat-message-right .chat-message-details .chat-message-username .chat-message-guestName {
+  color: #888;
+}
+
 #phase-content #phase-main #phase-main-chat #phase-main-chat-messages .chat-message .chat-message-right .chat-message-details .chat-message-timestamp {
   color: #777;
   margin-left: 5px;
@@ -436,5 +440,36 @@
 }
 
 #phase-content #phase-main #phase-main-people {
-  width: 300px
+  width: 250px
+}
+
+#phase-content #phase-main #phase-main-people .people-entry {
+	display: flex;
+	font-size: 14px;
+	color: #CCC;
+	margin-top: 5px;
+	padding-left: 5px;
+	padding-right: 10px;
+}
+
+#phase-content #phase-main #phase-main-people .people-entry-avatar > img {
+  border-radius: 5px;
+  width: 30px;
+  height: 30px;
+  background: #222
+}
+
+#phase-content #phase-main #phase-main-people .people-entry-username {
+	flex-grow: 1;
+	margin-top: 4px;
+	margin-left: 10px;
+}
+
+#phase-content #phase-main #phase-main-people .people-entry-icons {
+	flex-shrink: 0;
+}
+
+#phase-content #phase-main #phase-main-people .people-entry-icons-online {
+	color: #0DBD19;
+	font-size: 12px;
 }
