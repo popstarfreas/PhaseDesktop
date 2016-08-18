@@ -3644,17 +3644,29 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
   function newDiscussion(data) {
     if (!$('#disc' + data.discID).length) {
       var message = strip_tags(data.lastMessage);
-      $('#discussion-list').prepend('<div class="discussion" id="disc' + data.discID + '"><div class="discussion-title">' + strip_tags(data.discussionName) + '</div><div class="discussion-preview">' + strip_bbcode(message) + '</div></div>');
+      var discussionName = strip_tags(data.discussionName);
+      var discussionPreviewMessage = strip_bbcode(message);
+      var discussionHTML = `
+      <div class="discussion" id="disc${data.discID}">
+          <div class="discussion-title">${discussionName}</div>
+          <div class="discussion-preview">${discussionPreviewMessage}</div></div>`;
+      $('#phase-main-discussionslist').prepend(discussionHTML);
     }
   }
 
   function newDiscussionResponse(data) {
     if (!$('#disc' + data.discID).length) {
       var message = strip_tags(data.lastMessage);
-      $('#discussion-list').prepend('<div class="discussion" id="disc' + data.discID + '"><div class="discussion-title">' + strip_tags(data.name) + '</div><div class="discussion-preview">' + strip_bbcode(message) + '</div></div>');
+      var discussionName = strip_tags(data.name);
+      var discussionPreviewMessage = strip_bbcode(message);
+      var discussionHTML = `
+      <div class="discussion" id="disc${data.discID}">
+          <div class="discussion-title">${discussionName}</div>
+          <div class="discussion-preview">${discussionPreviewMessage}</div></div>`;
+      $('#phase-main-discussionslist').prepend(discussionHTML);
 
       if (!$('.selected').length) {
-        $($('<li>').html(data.lastMessage)).appendTo('#chat-list').find('.autoLinkedImage').each(function() {
+        $($('<li>').html(data.lastMessage)).appendTo('#phase-main-chat-messages-list').find('.autoLinkedImage').each(function() {
           getImageSize($(this), function(width, height) {
             scrollChatByHeight(height);
           });
