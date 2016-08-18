@@ -128,20 +128,12 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
   });
 
   function notifyMe(discID, username, msg, title) {
-    if (!Notification) {
-      alert('Notifications are supported in modern versions of Chrome, Firefox, Opera and IE.');
-      return;
-    }
-
-    if (Notification.permission !== "granted")
-      Notification.requestPermission();
-
     if (lastNotification !== null) {
       lastNotification.close();
     }
 
     var notification = new Notification(title, {
-      icon: 'https://i.imgur.com/Ph7MoKFl.jpg',
+      icon: 'img/128.png',
       body: username + ": " + msg,
       id: 'darkgamingphase'
     });
@@ -149,7 +141,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     lastNotification = notification;
 
     notification.onclick = function() {
-      window.focus();
+      _require('electron').remote.getCurrentWindow().focus();
       switchDiscussion($('#disc' + discID));
       waitingScroll = true;
       lastNotification = null;
@@ -170,26 +162,18 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
   }
 
   function callNotify(username) {
-    if (!Notification) {
-      alert('Notifications are supported in modern versions of Chrome, Firefox, Opera and IE.');
-      return;
-    }
-
-    if (Notification.permission !== "granted")
-      Notification.requestPermission();
-
     if (lastNotification !== null) {
       lastNotification.close();
     }
 
     var notification = new Notification("Phase Voice", {
-      icon: 'https://i.imgur.com/Ph7MoKFl.jpg',
+      icon: 'img/128.png',
       body: username + " is calling.",
       id: 'darkgamingphase'
     });
 
     notification.onclick = function() {
-      window.focus();
+      _require('electron').remote.getCurrentWindow().focus();
     };
 
     lastNotification = notification;
@@ -2463,7 +2447,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
 
   // Dealing with window focus
   var window_focus = true;
-  $(window).focus(function() {
+   _require('electron').remote.getCurrentWindow().on('focus', function() {
     window_focus = true;
     document.title = "Phase";
     notificationRead = true;
@@ -2479,8 +2463,11 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       lastNotification.close();
       lastNotification = null;
     }
-  }).blur(function() {
+  }).on('blur', function() {
     window_focus = false;
+  }).on('close', function() {
+    _require('electron').remote.getCurrentWindow().removeAllListeners('focus');
+    _require('electron').remote.getCurrentWindow().removeAllListeners('blur')
   });
 
   // Used to get currently selected text

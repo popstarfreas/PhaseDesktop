@@ -120,6 +120,8 @@
 <script type="text/javascript" src="js/vendor/diff.js"></script>
 <script src="js/vendor/log.js"></script>
 <script>
+	require('electron').remote.getCurrentWindow().removeAllListeners();
+ 	var _require = require;
   var phaseSession = "";
 	var cookies = require('electron').remote.getCurrentWindow().webContents.session.cookies;
 	cookies.get({}, function(err, cookies) {
