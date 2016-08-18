@@ -134,7 +134,8 @@
   border-bottom: 1px solid #282b30;
   padding: 10px 10px 3px 10px;
   display: flex;
-  flex-direction: column
+  flex-direction: column;
+  border-left: 2px solid transparent;
 }
 
 #phase-content #phase-main #phase-main-discussions .discussion:hover {
