@@ -2837,7 +2837,24 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     var systemSuffix = systemName !== mySystemName && systemName !== null ? '<span class="systemSuffix">@' + systemName + '</span>' : '';
     var messageTagHTML = typeof messageTag !== 'undefined' && messageTag !== null ? '<span class="chat-message-suffix" style="color: ' + messageTagColour + '">' + messageTag + '</span>' : '';
     var messageIPHTML = typeof messageIP !== 'undefined' && messageIP !== null ? '<span class="chat-message-ip">' + messageIP + '</span>' : '';
-    var messageHTML = (uid > 0 || uid == -1 || uid == -2) && username !== null ? '<div class="chat-message-right"><div class="chat-message-details"><span class="chat-message-username" data-toggle="tooltip" data-placement="right" ' + (typeof(accountName) !== 'undefined' && accountName !== "" ? 'title="Account: ' + accountName : '"') + '>' + (guest ? '<span class="chat-message-guestName">' + username + '</span>' : username) + '</span>' + systemSuffix + '<span class="chat-message-timestamp">' + getTimeString(timestamp) + '</span>' + messageTagHTML + messageIPHTML + '</div><div class="chat-message-content">' + message + '</div></div>' : message;
+    var messageHTML;
+    if ((uid > 0 || uid == -1 || uid == -2) && username !== null) {
+      var nameTooltip = typeof(accountName) !== 'undefined' && accountName !== "" ? `title="Account:${accountName}"` : '';
+      var nameDisplay = guest ? `<span class="chat-message-guestName">${username}</span>` : username;
+      var timestring = getTimeString(timestamp);
+      messageHTML = `<div class="chat-message-right">
+                        <div class="chat-message-details">
+                            <span class="chat-message-username" data-toggle="tooltip" data-placement="right" ${nameTooltip}>${nameDisplay}</span>
+                            ${systemSuffix}
+                            <span class="chat-message-timestamp">${timestring}</span>
+                            ${messageTagHTML}${messageIPHTML}
+                        </div>
+                        <div class="chat-message-content">${message}</div>
+                      </div>`;
+    } else {
+      messageHTML = message;
+    }
+
     var formattedMessage = messageHTML;
 
     return '<div' + (typeof(clientMessageID) === 'number' ? ' id="' + clientMessageID + '"' : '') + ' class="chat-message' + (notified ? ' chat-message-notified' : '') + '"><div class="chat-message-left"><div class="chat-message-avatar"><img class="avatar_' + uid + '" src="' + avatarFormat + '"></div></div>' + formattedMessage + '</div>';
