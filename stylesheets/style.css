@@ -243,6 +243,10 @@
   background-color: #282b30
 }
 
+#phase-content #phase-main #phase-main-discussions_alt-display .unread {
+  border-left: 2px solid #FFC400;
+}
+
 #phase-content #phase-main #phase-main-discussions_alt-display .selected {
   background-color: #282b30;
   border-left: 2px solid #7289da
