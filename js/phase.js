@@ -12,7 +12,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
   // Prevent links opening in app
   var shell = _require('electron').shell;
 
-  //open links externally by default
+  // open links externally by default (in the users default web browser)
   $(document).on('click', 'a[href^="http"]', function(event) {
     event.preventDefault();
     shell.openExternal(this.href);
