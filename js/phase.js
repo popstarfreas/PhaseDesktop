@@ -114,6 +114,19 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     });
   };
 
+  // Shortcuts
+  requirejs(['vendor/jquery.hotkeys'], function() {
+    $(document).bind('keydown', 'ctrl+q', function() {
+      var normal = $('#phase-main').find('#phase-main-discussions');
+      var modified = $('#phase-main').find('#phase-main-discussions_alt-display');
+      if (normal.length) {
+        normal.attr("id", "phase-main-discussions_alt-display");
+      } else {
+        modified.attr("id", "phase-main-discussions");
+      }
+    });
+  });
+
   function notifyMe(discID, username, msg, title) {
     if (!Notification) {
       alert('Notifications are supported in modern versions of Chrome, Firefox, Opera and IE.');
@@ -340,9 +353,9 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     ];
 
     var videoReplace = [
-      '<a href="https://$1">$1</a><br /><div class="youtube-container"><div class="youtube-player" data-id="$2"><img class="youtube-thumb" src="//i.ytimg.com/vi/$2/hqdefault.jpg"><div class="play-button"></div></div></div>',
-      '<a href="https://$1">$1</a><br /><iframe src="//player.vimeo.com/video/$2" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe><br />',
-      '<a href="https://$1">$1</a><br /><iframe frameborder="0" width="560" height="315" src="https://www.dailymotion.com/embed/video/$2?logo=0&foreground=ffffff&highlight=1bb4c6&background=000000" allowfullscreen></iframe><br />',
+      '<a href="https://$1" target="_blank">$1</a><br /><div class="youtube-container"><div class="youtube-player" data-id="$2"><img class="youtube-thumb autoLinkedImage" src="https://i.ytimg.com/vi/$2/hqdefault.jpg"><div class="play-button"></div></div></div>',
+      '<a href="https://$1" target="_blank">$1</a><br /><iframe src="//player.vimeo.com/video/$2" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe><br />',
+      '<a href="https://$1" target="_blank">$1</a><br /><iframe frameborder="0" width="560" height="315" src="https://www.dailymotion.com/embed/video/$2?logo=0&foreground=ffffff&highlight=1bb4c6&background=000000" allowfullscreen></iframe><br />',
     ];
 
     var search = [
@@ -642,6 +655,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
   function scrollChatByHeight(height) {
     var chat = document.getElementById('phase-main-chat-messages');
     chat.scrollTop += height;
+    updateChatScroll();
   }
 
   // Returns the images matched from text but only matches one with an image extension
@@ -877,7 +891,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       $('#input-search').hide();
 
       // Clear current display
-      $('#phase-main-chat-messages').html('');
+      $('#phase-main-chat-messages-list').html('');
       $('#chat-list-inprogress').html('');
 
       // Change message input field to contain previous input (which defaults to "")
@@ -936,7 +950,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
             }
 
             // Set html, scroll chat by image
-            $('#phase-main-chat-messages').html(avatarLoad(html)).find('.autoLinkedImage').each(function() {
+            $('#phase-main-chat-messages-list').html(avatarLoad(html)).find('.autoLinkedImage').each(function() {
               getImageSize($(this), function(width, height) {
                 scrollChatByHeight(height);
               });
@@ -969,7 +983,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
 
               $('#chat-list-inprogress').append(inProgressMessageFormat(userID, username, systemName, avatar));
               inProgressMessage = document.getElementById('user' + userID);
-              var message = $(inProgressMessage).find('.message');
+              var message = $(inProgressMessage).find('.chat-message-content');
               message.text(discussionLiveTyping[discID][userID]);
             }
           }
@@ -1036,7 +1050,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
 
         $('#chat-list-inprogress').append(inProgressMessageFormat(userID, username, systemName, avatar));
         inProgressMessage = document.getElementById('user' + userID);
-        var message = $(inProgressMessage).find('.message');
+        var message = $(inProgressMessage).find('.chat-message-content');
         message.text(discussionLiveTyping[discID][userID]);
       }
     }
@@ -1201,7 +1215,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
               avatar = 'img/default.png';
             }
           }
-          
+
           avatar = avatar.replace(/^\//, 'https://t.dark-gaming.com:3001/');
 
           // Set mod string
@@ -1940,7 +1954,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       topMessageIndex = 0;
       bottomMessageIndex = messagesLength - 1;
       for (var i = 0; i < messagesLength; i++) {
-        $(avatarLoad(discussionMessages[discID][i])).appendTo('#phase-main-chat-messages').find('.autoLinkedImage').each(function() {
+        $(avatarLoad(discussionMessages[discID][i])).appendTo('#phase-main-chat-messages-list').find('.autoLinkedImage').each(function() {
           getImageSize($(this), function(width, height) {
             scrollChatByHeight(height);
           });
@@ -2289,7 +2303,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
 
   function sendMessageTest(msg) {
     if (nick === "") {
-      $($('<li>').text('You cannot send messages until you have fully connected!')).appendTo('#chat-list').find('.autoLinkedImage').each(function() {
+      $($('<li>').text('You cannot send messages until you have fully connected!')).appendTo('#phase-main-chat-messages-list').find('.autoLinkedImage').each(function() {
         getImageSize($(this), function(width, height) {
           scrollChatByHeight(height);
         });
@@ -2320,7 +2334,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       //var formattedMessage = '<span class="chat-message-info"><span class="chat-name">' + nick + '</span><span class="chat-timestamp">' + moment().format('LT') + '</span></span>' + htmlspecialchars(msg);
       //formattedMessage = bbcode(replaceURLWithImage(formattedMessage));
       var formattedMessage = formatChatMessage(null, null, myuserID, nick, htmlspecialchars(msg), nick, false, Math.floor(Date.now() / 1000), mySystemName, myAvatar);
-      $(formattedMessage).appendTo('#chat-list').find('.autoLinkedImage').each(function() {
+      $(formattedMessage).appendTo('#phase-main-chat-messages-list').find('.autoLinkedImage').each(function() {
         getImageSize($(this), function(width, height) {
           scrollChatByHeight(height);
         });
@@ -2355,7 +2369,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
 
   function sendChatMessage() {
     if (nick === "") {
-      $($('<li>').text('You cannot send messages until you have fully connected!')).appendTo('#chat-list').find('.autoLinkedImage').each(function() {
+      $($('<li>').text('You cannot send messages until you have fully connected!')).appendTo('#phase-main-chat-messages-list').find('.autoLinkedImage').each(function() {
         getImageSize($(this), function(width, height) {
           scrollChatByHeight(height);
         });
@@ -2369,7 +2383,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
 
     if (msg == "/alert") {
       var formattedMessage = formatChatMessage(null, null, -2, "System", "Alerts for this Discussion have been temporarily enabled.", "System", false, Math.floor(Date.now() / 1000), mySystemName, "/img/system.png", -1);
-      $(avatarLoad(formattedMessage)).appendTo('#chat-list');
+      $(avatarLoad(formattedMessage)).appendTo('#phase-main-chat-messages-list');
       setting_discussionAlertEnabled[discID] = true;
       $('#chat-textarea').val('');
       var chat = document.getElementById('phase-main-chat-messages');
@@ -2403,7 +2417,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       //var formattedMessage = '<span class="chat-message-info"><span class="chat-name">' + nick + '</span><span class="chat-timestamp">' + moment().format('LT') + '</span></span>' + htmlspecialchars(msg);
       //formattedMessage = bbcode(replaceURLWithImage(formattedMessage));
       var formattedMessage = formatChatMessage(null, null, myuserID, nick, htmlspecialchars(msg), nick, false, Math.floor(Date.now() / 1000), mySystemName, myAvatar, currentMessageID);
-      $(avatarLoad(formattedMessage)).appendTo('#phase-main-chat-messages').find('.autoLinkedImage').each(function() {
+      $(avatarLoad(formattedMessage)).appendTo('#phase-main-chat-messages-list').find('.autoLinkedImage').each(function() {
         getImageSize($(this), function(width, height) {
           scrollChatByHeight(height);
         });
@@ -2834,7 +2848,20 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
 
   function inProgressMessageFormat(id, nick, systemName, avatar) {
     var avatarImage = typeof avatar === 'undefined' ? 'https://dark-gaming.com/img/default.png' : avatar;
-    return '<li id="user' + id + '" class="inprogress"><div class="chat-message-avatar"><img src="' + avatarImage + '"></div><div class="chat-message-right"><span class="chat-message-info">' + '<span class="chat-name">' + htmlspecialchars(nick) + '</span></span><span class="message"></span></div></li>';
+    //return '<li id="user' + id + '" class="inprogress"><div class="chat-message-avatar"><img src="' + avatarImage + '"></div><div class="chat-message-right"><span class="chat-message-info">' + '<span class="chat-name">' + htmlspecialchars(nick) + '</span></span><span class="message"></span></div></li>';
+
+    return `<div id="user${id}" class="chat-message">
+              <div class="chat-message-left">
+                <div class="chat-message-avatar">
+                  <img class="avatar_${id}}" src="${avatarImage}">
+                </div>
+              </div>
+              <div class="chat-message-right">
+                <div class="chat-message-details">
+                  <span class="chat-message-username" data-toggle="tooltip" data-placement="right">${nick}</span>
+                </div>
+                <div class="chat-message-content"></div>
+            </div>`;
   }
 
   /* End Formatting */
@@ -3304,8 +3331,8 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     currentMessageViewState = messageViewStates.deepHistory;
 
     // Clear display
-    $('#chat-list').html('');
-    $('#chat-list-inprogress').html('');
+    $('#phase-main-chat-messages-list').html('');
+    $('#phase-main-chat-inprogress').html('');
 
     // Append messages to display
     var messagesLength = messages.length;
@@ -3789,7 +3816,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       var chat = document.getElementById('phase-main-chat-messages');
       if (chat.scrollTop < (chat.scrollHeight - chat.offsetHeight - 50))
         bottom = false;
-      $(formattedMessage).appendTo('#chat-list').find('.autoLinkedImage').each(function() {
+      $(formattedMessage).appendTo('#phase-main-chat-messages-list').find('.autoLinkedImage').each(function() {
         getImageSize($(this), function(width, height) {
           scrollChatByHeight(height);
         });
@@ -3814,7 +3841,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
           var chat = document.getElementById('phase-main-chat-messages');
           if (chat.scrollTop < (chat.scrollHeight - chat.offsetHeight - 50))
             bottom = false;
-          $(avatarLoad(formattedMessage)).appendTo('#phase-main-chat-messages').find('.autoLinkedImage').each(function() {
+          $(avatarLoad(formattedMessage)).appendTo('#phase-main-chat-messages-list').find('.autoLinkedImage').each(function() {
             getImageSize($(this), function(width, height) {
               scrollChatByHeight(height);
             });
@@ -3950,14 +3977,14 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
           }
         }
 
-        $('#chat-list-inprogress').append(inProgressMessageFormat(id, nick, systemName, avatar));
+        $('#phase-main-chat-inprogress').append(inProgressMessageFormat(id, nick, systemName, avatar));
       }
 
       inProgressMessage = document.getElementById('user' + id);
       if (liveTyping[id].length === 0) {
         $(inProgressMessage).remove();
       } else {
-        var message = $(inProgressMessage).find('.message');
+        var message = $(inProgressMessage).find('.chat-message-content');
         if (liveTyping[id].length <= 500)
           message.html(bbcode(liveTyping[id]));
         else

@@ -160,9 +160,11 @@
   color: #ccc
 }
 
+/* Alt Version */
 #phase-content #phase-main #phase-main-discussions_alt-display {
   width: 250px;
-  background: #2e3136
+  background: #2e3136;
+  font-family: 'Lato', sans-serif;
 }
 
 #phase-content #phase-main #phase-main-discussions_alt-display #phase-main-discussions-title {
@@ -171,7 +173,8 @@
   height: 30px;
   align-items: center;
   font-size: 18px;
-  border-bottom: 2px solid #282b30
+  border-bottom: 2px solid #282b30;
+  flex-shrink: 0
 }
 
 #phase-content #phase-main #phase-main-discussions_alt-display #phase-main-discussions-title #phase-main-discussions-title-value {
@@ -194,12 +197,16 @@
   color: #ddd
 }
 
+#phase-content #phase-main #phase-main-discussions_alt-display #phase-main-discussionslist {
+  overflow: hidden;
+}
+
 #phase-content #phase-main #phase-main-discussions_alt-display .discussion {
-  height: 30px;
+  min-height: 30px;
   border-bottom: 1px solid #282b30;
   padding: 10px 0 3px 10px;
   display: flex;
-  flex-direction: column
+  flex-direction: column;
 }
 
 #phase-content #phase-main #phase-main-discussions_alt-display .discussion:hover {
@@ -246,11 +253,15 @@
 #phase-content #phase-main #phase-main-chat #phase-main-chat-messages {
   flex-direction: column;
   flex: 1;
-  overflow: hidden
+  overflow: hidden;
 }
 
-#phase-content #phase-main #phase-main-chat #phase-main-chat-messages>div {
-  display: flex
+#phase-content #phase-main #phase-main-chat #phase-main-chat-messages-list > div {
+  display: flex;
+}
+
+#phase-content #phase-main #phase-main-chat #phase-main-chat-inprogress > div {
+  display: flex;
 }
 
 #phase-content #phase-main #phase-main-chat #phase-main-chat-messages .chat-message {
@@ -269,7 +280,7 @@
   display: flex
 }
 
-#phase-content #phase-main #phase-main-chat #phase-main-chat-messages .chat-message .chat-message-left .chat-message-avatar>img {
+#phase-content #phase-main #phase-main-chat #phase-main-chat-messages .chat-message .chat-message-left .chat-message-avatar > img {
   border-radius: 5px;
   width: 38px;
   height: 36px;
