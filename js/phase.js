@@ -23,6 +23,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     port: 3001
   };
   var socket = socketCluster.connect(options);
+  window.wssocket = socket;
   var notificationRead = true;
   var notificationTimeout = null;
   var sound = [];
@@ -446,7 +447,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       '&#$1;',
       '<span style="color:$1;">$2</span>',
       '<span style="color:$1;">$2</span>',
-      '<img title=":kappa:" src="/img/kappa.png" style="width: 30px; height: 30px" />',
+      '<img title=":kappa:" src="img/kappa.png" style="width: 30px; height: 30px" />',
 
       // Terraria Chat Tags
       function(match, capture) {
