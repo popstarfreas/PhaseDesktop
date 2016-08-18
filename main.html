@@ -50,7 +50,7 @@
 			Phase
 			</div>
 			<div id="phase-nav-discussiontitle">
-				Terraria
+				<div id="phase-nav-discussiontitle-edit">Terraria</div>
 			</div>
 			<div id="phase-nav-icons">
 				<i class="fa fa-user" aria-hidden="true"></i>
@@ -121,9 +121,12 @@
 <script src="js/vendor/log.js"></script>
 <script>
 	require('electron').remote.getCurrentWindow().removeAllListeners();
+
+	// Global require as require gets overwritten by requirejs
  	var _require = require;
   var phaseSession = "";
 	var cookies = require('electron').remote.getCurrentWindow().webContents.session.cookies;
+
 	cookies.get({}, function(err, cookies) {
 		for (var i = 0, len = cookies.length; i < len; i++) {
 			if (cookies[i].name === "_phasesession") {

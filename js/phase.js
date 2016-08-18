@@ -9,6 +9,15 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     $('[data-toggle="tooltip"]').tooltip();
   });
 
+  // Prevent links opening in app
+  var shell = _require('electron').shell;
+
+  //open links externally by default
+  $(document).on('click', 'a[href^="http"]', function(event) {
+    event.preventDefault();
+    shell.openExternal(this.href);
+  });
+
   // Identification Information
   var nick = "";
   var mySystemName = "";
@@ -909,7 +918,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
 
       // Thread or Phase Discussion
       if (elem.attr('id').substr(0, 4) == 'disc') {
-        $('#phase-nav-discussiontitle').text($('.selected').children('.discussion-title').text());
+        $('#phase-nav-discussiontitle-edit').text($('.selected').children('.discussion-title').text());
 
         // If we've not received some history, retrieve some
         if (!receivedSaved[id]) {
@@ -1288,7 +1297,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     $('.selected').removeClass('selected');
 
     // Replace text with input tag
-    $('#phase-nav-discussiontitle').html('<input placeholder="Enter a Discussion Name..." id="phase-nav-discussiontitle_input" type="text" style="width: 100%; background: none; border: none; position: relative; bottom: 3px;"/>');
+    $('#phase-nav-discussiontitle-edit').html('<input placeholder="Enter a Discussion Name..." id="phase-nav-discussiontitle_input" type="text" style="width: 100%; background: none; border: none; position: relative; bottom: 3px;"/>');
 
     // Clear current chat messages list
     $('#chat-list').html('');
@@ -1300,7 +1309,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     $('#phase-nav-discussiontitle_input').on('keyup', function(e) {
       if (e.keyCode == 13) {
         var name = $('#phase-nav-discussiontitle_input').val();
-        $('#phase-nav-discussiontitle').text(name);
+        $('#phase-nav-discussiontitle-edit').text(name);
         socket.emit('discussion add', name);
       }
     });
@@ -1636,8 +1645,8 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       return;*/
 
     if (!inputAlreadyExists) {
-      var currentName = $('#phase-nav-discussiontitle').text();
-      $('#phase-nav-discussiontitle').html('<input placeholder="Enter a Discussion Name..." id="phase-nav-discussiontitle_input" type="text" style="width: 100%; background: none; border: none; position: relative; bottom: 3px;" value="' + currentName + '" />');
+      var currentName = $('#phase-nav-discussiontitle-edit').text();
+      $('#phase-nav-discussiontitle-edit').html('<input placeholder="Enter a Discussion Name..." id="phase-nav-discussiontitle_input" type="text" value="' + currentName + '" />');
     }
 
     $('#phase-nav-discussiontitle_input').focus();
@@ -1650,7 +1659,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     $('#phase-nav-discussiontitle_input').on('keyup', function(e) {
       if (e.keyCode == 13) {
         var name = $('#phase-nav-discussiontitle_input').val();
-        $('#phase-nav-discussiontitle').text(name);
+        $('#phase-nav-discussiontitle-edit').text(name);
         socket.emit('discussion rename', {
           discID: selectedDiscID,
           name: name
@@ -1661,7 +1670,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
         $('#phase-nav-discussiontitle_input').remove();
       }
     }).on('blur', function(e) {
-      $('#phase-nav-discussiontitle').text(currentName);
+      $('#phase-nav-discussiontitle-edit').text(currentName);
       $('#phase-nav-discussiontitle_input').remove();
     });
   });

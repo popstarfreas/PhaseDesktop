@@ -54,6 +54,22 @@
   font-weight: bold
 }
 
+#phase-content #phase-nav #phase-nav-discussiontitle #phase-nav-discussiontitle-edit {
+	display: inline;
+}
+
+#phase-content #phase-nav #phase-nav-discussiontitle #phase-nav-discussiontitle-edit #phase-nav-discussiontitle_input {
+	font-weight: bold;
+	font-size: 16px;
+	color: #eee;
+  font-family: 'Open Sans', sans-serif;
+  outline: none;
+  text-align: center;
+  background: none;
+	border: none;
+	width: 100%;
+}
+
 #phase-content #phase-nav #phase-nav-icons {
   flex-shrink: 0;
   padding-right: 15px;
