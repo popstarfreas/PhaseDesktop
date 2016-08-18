@@ -127,13 +127,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
   // Shortcuts
   requirejs(['vendor/jquery.hotkeys'], function() {
     $(document).bind('keydown', 'ctrl+q', function() {
-      var normal = $('#phase-main').find('#phase-main-discussions');
-      var modified = $('#phase-main').find('#phase-main-discussions_alt-display');
-      if (normal.length) {
-        normal.attr("id", "phase-main-discussions_alt-display");
-      } else {
-        modified.attr("id", "phase-main-discussions");
-      }
+      toggleDiscussionListView();
     });
   });
 
@@ -1325,6 +1319,20 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     }
   });
 
+  function toggleDiscussionListView() {
+    var normal = $('#phase-main').find('#phase-main-discussions');
+    var modified = $('#phase-main').find('#phase-main-discussions_alt-display');
+    if (normal.length) {
+      normal.attr("id", "phase-main-discussions_alt-display");
+    } else {
+      modified.attr("id", "phase-main-discussions");
+    }
+  }
+
+  $('body').on('click', '#change-discussionlist-view', function() {
+    toggleDiscussionListView();
+  });
+
   $('body').on('click', '#add-discussion', function() {
     addDiscussionInitiate();
   });
@@ -2457,7 +2465,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
 
   // Dealing with window focus
   var window_focus = true;
-   _require('electron').remote.getCurrentWindow().on('focus', function() {
+  _require('electron').remote.getCurrentWindow().on('focus', function() {
     window_focus = true;
     document.title = "Phase";
     notificationRead = true;
