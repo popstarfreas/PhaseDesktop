@@ -366,6 +366,10 @@
   font-size: 14px
 }
 
+#phase-content #phase-main #phase-main-chat #phase-main-chat-messages .chat-message .chat-message-right .chat-message-content img {
+    max-width: 100%;
+}
+
 #phase-content #phase-main #phase-main-chat #phase-main-chat-scroller {
   background: #2e3136;
   width: 8px;
