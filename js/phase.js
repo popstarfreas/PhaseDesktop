@@ -880,7 +880,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
 
       // Clear current display
       $('#phase-main-chat-messages-list').html('');
-      $('#chat-list-inprogress').html('');
+      $('#phase-main-chat-inprogress').html('');
 
       // Change message input field to contain previous input (which defaults to "")
       $('#chat-textarea').val(inprogressMessages[selectedDiscID]);
