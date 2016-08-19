@@ -6,7 +6,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron . -dev",
-    "package": "electron-packager ./ Phase --arch=ia32 --platform=win32 --out builds --version 1.3.3 --overwrite --icon=phase.ico --version-string.CompanyName=\"Dark Gaming\" --version-string.ProductName=\"Phase\" --version-string.OriginalFileName=\"Phase\" --version-string.InternalName=\"Phase\" --version-string.FileDescription=\"Phase\""
+    "package": "electron-packager ./ Phase --arch=ia32 --platform=win32 --out builds --version 1.3.3 --overwrite --icon=icons/phase.ico --version-string.CompanyName=\"Dark Gaming\" --version-string.ProductName=\"Phase\" --version-string.OriginalFileName=\"Phase\" --version-string.InternalName=\"Phase\" --version-string.FileDescription=\"Phase\""
   },
   "repository": {
     "type": "git",
