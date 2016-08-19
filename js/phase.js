@@ -139,7 +139,8 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     var notification = new Notification(title, {
       icon: 'img/128.png',
       body: username + ": " + msg,
-      id: 'darkgamingphase'
+      id: 'darkgamingphase',
+      silent: true
     });
 
     lastNotification = notification;
@@ -173,7 +174,8 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     var notification = new Notification("Phase Voice", {
       icon: 'img/128.png',
       body: username + " is calling.",
-      id: 'darkgamingphase'
+      id: 'darkgamingphase',
+      silent: true
     });
 
     notification.onclick = function() {
