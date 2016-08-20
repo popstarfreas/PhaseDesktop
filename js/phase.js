@@ -1169,8 +1169,8 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       if (selectedDiscID != discID)
         return;
 
-      var section = $('#people-section-discussion');
-      var sectionList = section.children(".people-section-list").children('ul');
+      var section = $('#phase-main-people');
+      var sectionList = section.children("#people-discussion").children(".phase-main-people-section-list");
 
       // Clear List
       sectionList.html('');
@@ -1221,19 +1221,66 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
             status = '<i class="fa fa-circle" data-toggle="tooltip" data-placement="left" title="Online"></i>';
 
             if (discussionUsers[discID][i].name == nick && discussionUsers[discID][i].systemName == mySystemName) {
-              onlineUsers.push($('<li id="discussionuser-' + i + '">').html('<div class="people_user_avatar"><img class="avatar_' + discussionUsers[discID][i].userID + '" src="' + avatar + '"/></div><div class="people_user_right"><span class="people-username"><span class="username">' + htmlspecialchars(discussionUsers[discID][i].name) + '</span></span></div>' + status + leaveDiscussionTemplate + mod));
+              onlineUsers.push(`
+              <div id="discussionuser-${i}" class="people-entry">
+                <div class="people-entry-avatar"><img class="avatar_${discussionUsers[discID][i].userID}" src="${avatar}" /></div>
+                <div class="people-entry-username">${formatName}</div>
+                <div class="people-entry-icons">
+                ${status}
+                ${leaveDiscussionTemplate}
+                ${mod}
+                </div>
+              </div>`);
             } else {
-              if (discussionCreator[discID] != myuserID && !isMod[discID])
-                onlineUsers.push($('<li id="discussionuser-' + i + '">').html('<div class="people_user_avatar"><img class="avatar_' + discussionUsers[discID][i].userID + '" src="' + avatar + '"/></div><div class="people_user_right"><span class="people-username">' + formatName + '</span></div>' + status + mod));
-              else
-                onlineUsers.push($('<li id="discussionuser-' + i + '">').html('<div class="people_user_avatar"><img class="avatar_' + discussionUsers[discID][i].userID + '" src="' + avatar + '"/></div><div class="people_user_right"><span class="people-username">' + formatName + '</span></div>' + status + removeUserTemplate + mod));
+              if (discussionCreator[discID] != myuserID && !isMod[discID]) {
+              onlineUsers.push(`
+              <div id="discussionuser-${i}" class="people-entry">
+                <div class="people-entry-avatar"><img class="avatar_${discussionUsers[discID][i].userID}" src="${avatar}" /></div>
+                <div class="people-entry-username">${formatName}</div>
+                <div class="people-entry-icons">
+                ${status}
+                ${mod}
+                </div>
+              </div>`);
+              }
+              else {
+              onlineUsers.push(`
+              <div id="discussionuser-${i}" class="people-entry">
+                <div class="people-entry-avatar"><img class="avatar_${discussionUsers[discID][i].userID}" src="${avatar}" /></div>
+                <div class="people-entry-username">${formatName}</div>
+                <div class="people-entry-icons">
+                ${status}
+                ${removeUserTemplate}
+                ${mod}
+                </div>
+              </div>`);
+              }
             }
           } else {
             status = '<i class="fa fa-circle user-status-offline" data-toggle="tooltip" data-placement="left" title="Offline"></i>';
-            if (discussionCreator[discID] != myuserID && !isMod[discID])
-              offlineUsers.push($('<li id="discussionuser-' + i + '">').html('<div class="people_user_avatar"><img class="avatar_' + discussionUsers[discID][i].userID + '" src="' + avatar + '"/></div><div class="people_user_right"><span class="people-username">' + formatName + '</span></div>' + status + mod));
-            else
-              offlineUsers.push($('<li id="discussionuser-' + i + '">').html('<div class="people_user_avatar"><img class="avatar_' + discussionUsers[discID][i].userID + '" src="' + avatar + '"/></div><div class="people_user_right"><span class="people-username">' + formatName + '</span></div>' + status + removeUserTemplate + mod));
+            if (discussionCreator[discID] != myuserID && !isMod[discID]) {
+              offlineUsers.push(`
+              <div id="discussionuser-${i}" class="people-entry">
+                <div class="people-entry-avatar"><img class="avatar_${discussionUsers[discID][i].userID}" src="${avatar}" /></div>
+                <div class="people-entry-username">${formatName}</div>
+                <div class="people-entry-icons">
+                ${status}
+                ${mod}
+                </div>
+              </div>`);
+            }
+            else {
+              offlineUsers.push(`
+              <div id="discussionuser-${i}" class="people-entry">
+                <div class="people-entry-avatar"><img class="avatar_${discussionUsers[discID][i].userID}" src="${avatar}" /></div>
+                <div class="people-entry-username">${formatName}</div>
+                <div class="people-entry-icons">
+                ${status}
+                ${removeUserTemplate}
+                ${mod}
+                </div>
+              </div>`);
+            }
           }
         }
       }
@@ -2156,7 +2203,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
   function refreshList() {
     // master div
     var section = $('#phase-main-people');
-    var sectionList = section.children("#people-phase");
+    var sectionList = section.children("#people-phase").children(".phase-main-people-section-list");
     sectionList.html('');
 
     var formatName;
