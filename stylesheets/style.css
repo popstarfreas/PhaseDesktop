@@ -125,8 +125,49 @@
   color: #ddd
 }
 
+#phase-content #phase-main #phase-main-discussions #phase-main-discussions-container {
+  display: flex;
+  flex-direction: row;
+  min-height: 0;
+  position: relative;
+}
+
 #phase-content #phase-main #phase-main-discussions #phase-main-discussionslist {
-  overflow: hidden
+  overflow: hidden;
+}
+
+#phase-content #phase-main #phase-main-discussions #phase-main-discussions-scroller {
+  background: transparent;
+  width: 6px;
+  border-radius: 10px;
+  margin: 0 4px;
+  flex-shrink: 0;
+  height: 100%;
+  position: absolute;
+  right: 0;
+}
+
+#phase-content #phase-main #phase-main-discussions #phase-main-discussions-scroller #discussions-thumb {
+  height: 60px;
+  background: transparent;
+  position: relative;
+  top: 0;
+  position: absolute;
+  right: 0;
+  left: 0;
+  margin: 4px -1px -1px -1px;
+}
+
+#phase-content #phase-main #phase-main-discussions #phase-main-discussions-scroller #discussions-thumb::after {
+  background: #1e2124;
+  margin: 1px;
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 10px
 }
 
 #phase-content #phase-main #phase-main-discussions .discussion {
@@ -154,7 +195,10 @@
 
 #phase-content #phase-main #phase-main-discussions .discussion .discussion-title {
   font-size: 16px;
-  color: #aaa
+  color: #aaa;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 #phase-content #phase-main #phase-main-discussions .discussion:hover .discussion-title {
@@ -396,7 +440,8 @@
   width: 8px;
   border-radius: 10px;
   position: relative;
-  margin: 4px
+  margin: 4px;
+  flex-shrink: 0;
 }
 
 #phase-content #phase-main #phase-main-chat #phase-main-chat-scroller #chat-thumb {
@@ -535,7 +580,8 @@
   width: 8px;
   border-radius: 10px;
   position: relative;
-  margin: 4px
+  margin: 4px;
+  flex-shrink: 0;
 }
 
 #phase-content #phase-main #phase-main-people #phase-main-people-scroller #people-thumb {

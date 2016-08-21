@@ -478,6 +478,8 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     }
     else if ($('#phase-main-people:hover').length > 0) {
       handlePeopleScroll(e);
+    } else if ($('#phase-main-discussions:hover').length > 0) {
+      handleDiscussionsScroll(e);
     }
   }, false);
 
@@ -629,6 +631,84 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
 
   $(window).on('resize', function() {
     updatePeopleScroll();
+  });
+
+  function handleDiscussionsScroll(e) {
+    var fraction = ($('#phase-main-discussionslist')[0].scrollTop + e.deltaY) / ($('#phase-main-discussionslist')[0].scrollHeight - $('#phase-main-discussionslist')[0].offsetHeight);
+      if (fraction > 1) {
+        fraction = 1;
+      } else if (fraction < 0) {
+        fraction = 0;
+      }
+
+      var height = ($('#phase-main-discussions-scroller')[0].offsetHeight - $('#discussions-thumb').height());
+      var total = height * fraction;
+      if (height-total < 20)
+        total -= 10;
+
+      var thumbTop = parseInt($('#discussions-thumb')[0].style.top);
+      var topDelta = Math.abs(total - thumbTop) !== 0 ? Math.abs(total - thumbTop) : 0.1;
+      var inverseSpeed = 30 / topDelta;
+      var maxInverseSpeed = 0.5;
+      if (inverseSpeed > maxInverseSpeed) {
+        inverseSpeed = maxInverseSpeed;
+      }
+
+      $('#discussions-thumb').finish().css("top", thumbTop + "px").animate({ 'top': total + "px" }, 400 * inverseSpeed);
+
+      var top = parseInt($('#phase-main-discussionslist')[0].style.top);
+      $('#phase-main-discussionslist').finish().css("top", top + "px").animate({
+        scrollTop: $('#phase-main-discussionslist')[0].scrollTop + e.deltaY
+      }, 100, 'swing');
+
+      chatScrollManuallyHandled = true;
+  }
+
+  function updateDiscussionsScroll() {
+    var baseHeight = 160;
+    var tScrollHeight = ($('#phase-main-discussionslist').prop('scrollHeight'));
+
+    var height;
+    var tDifference = tScrollHeight - $('#phase-main-discussionslist').height();
+    var scrollerHeight = $('#phase-main-discussions-scroller').height();
+    if (tScrollHeight > 0 && tDifference > 0) {
+      height = scrollerHeight / tScrollHeight * scrollerHeight;
+    } else {
+      height = scrollerHeight;
+    }
+    if (height > scrollerHeight || height === 0) {
+      height = scrollerHeight;
+    }
+    $('#discussions-thumb').height(height + "px");
+
+    if (height === scrollerHeight) {
+      $('#phase-main-discussions-scroller').css('width', '0');
+    } else {
+      $('#phase-main-discussions-scroller').css('width', '8px');
+    }
+
+    var fraction;
+    if ($('#phase-main-discussionslist')[0].scrollTop === 0) {
+      fraction = 0;
+    } else {
+      fraction = ($('#phase-main-discussionslist')[0].scrollTop) / ($('#phase-main-discussionslist')[0].scrollHeight - $('#phase-main-discussionslist')[0].offsetHeight);
+      if (fraction > 1) {
+        fraction = 1;
+      } else if (fraction < 0) {
+        fraction = 0;
+      }
+    }
+
+    var total = ($('#phase-main-discussions-scroller')[0].offsetHeight - $('#discussions-thumb').height()) * fraction;
+    $('#discussions-thumb').css('top', total + 'px');
+  }
+
+  $('#phase-main-discussionslist').on('DOMNodeInserted DOMNodeRemoved', function() {
+    updateDiscussionsScroll();
+  });
+
+  $(window).on('resize', function() {
+    updateDiscussionsScroll();
   });
 
 
