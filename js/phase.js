@@ -473,35 +473,40 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
   var chatScrollManuallyHandled = false;
   var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
   document.addEventListener(mousewheelevt, function(e) {
-    var deltaY = e.deltaY;
-    //HOIK 
     if ($('#phase-main-chat:hover').length > 0) {
-      var fraction = ($('#phase-main-chat-messages')[0].scrollTop + e.deltaY) / ($('#phase-main-chat-messages')[0].scrollHeight - $('#phase-main-chat-messages')[0].offsetHeight);
-      if (fraction > 1) {
-        fraction = 1;
-      } else if (fraction < 0) {
-        fraction = 0;
-      }
-      var total = ($('#phase-main-chat-scroller')[0].offsetHeight - $('#thumb').height()) * fraction;
-
-      var thumbTop = parseInt($('#thumb')[0].style.top);
-      var topDelta = Math.abs(total - thumbTop) !== 0 ? Math.abs(total - thumbTop) : 0.1;
-      var inverseSpeed = 30 / topDelta;
-      var maxInverseSpeed = 0.5;
-      if (inverseSpeed > maxInverseSpeed) {
-        inverseSpeed = maxInverseSpeed;
-      }
-
-      $('#thumb').finish().css("top", thumbTop + "px").animate({ 'top': total + "px" }, 400 * inverseSpeed);
-
-      var top = parseInt($('#phase-main-chat-messages')[0].style.top);
-      $('#phase-main-chat-messages').finish().css("top", top + "px").animate({
-        scrollTop: $('#phase-main-chat-messages')[0].scrollTop + e.deltaY
-      }, 100, 'swing');
-
-      chatScrollManuallyHandled = true;
+      handleChatScroll(e);
+    }
+    else if ($('#phase-main-people:hover').length > 0) {
+      handlePeopleScroll(e);
     }
   }, false);
+
+  function handleChatScroll(e) {
+    var fraction = ($('#phase-main-chat-messages')[0].scrollTop + e.deltaY) / ($('#phase-main-chat-messages')[0].scrollHeight - $('#phase-main-chat-messages')[0].offsetHeight);
+    if (fraction > 1) {
+      fraction = 1;
+    } else if (fraction < 0) {
+      fraction = 0;
+    }
+    var total = ($('#phase-main-chat-scroller')[0].offsetHeight - $('#chat-thumb').height()) * fraction;
+
+    var thumbTop = parseInt($('#chat-thumb')[0].style.top);
+    var topDelta = Math.abs(total - thumbTop) !== 0 ? Math.abs(total - thumbTop) : 0.1;
+    var inverseSpeed = 30 / topDelta;
+    var maxInverseSpeed = 0.5;
+    if (inverseSpeed > maxInverseSpeed) {
+      inverseSpeed = maxInverseSpeed;
+    }
+
+    $('#chat-thumb').finish().css("top", thumbTop + "px").animate({ 'top': total + "px" }, 400 * inverseSpeed);
+
+    var top = parseInt($('#phase-main-chat-messages')[0].style.top);
+    $('#phase-main-chat-messages').finish().css("top", top + "px").animate({
+      scrollTop: $('#phase-main-chat-messages')[0].scrollTop + e.deltaY
+    }, 100, 'swing');
+
+    chatScrollManuallyHandled = true;
+  }
 
   function updateChatScroll() {
     var displayedMessages = $('#phase-main-chat-messages').children().length;
@@ -520,7 +525,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     if (height > scrollerHeight || height === 0) {
       height = scrollerHeight;
     }
-    $('#thumb').height(height + "px");
+    $('#chat-thumb').height(height + "px");
 
     if (height === scrollerHeight) {
       $('#phase-main-chat-scroller').css('width', '0');
@@ -540,8 +545,8 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       }
     }
 
-    var total = ($('#phase-main-chat-scroller')[0].offsetHeight - $('#thumb').height()) * fraction;
-    $('#thumb').css('top', total + 'px');
+    var total = ($('#phase-main-chat-scroller')[0].offsetHeight - $('#chat-thumb').height()) * fraction;
+    $('#chat-thumb').css('top', total + 'px');
   }
 
   $('#phase-main-chat-messages').on('DOMNodeInserted DOMNodeRemoved', function() {
@@ -551,6 +556,81 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
   $(window).on('resize', function() {
     updateChatScroll();
   });
+
+  function handlePeopleScroll(e) {
+    var fraction = ($('#phase-main-people-lists')[0].scrollTop + e.deltaY) / ($('#phase-main-people-lists')[0].scrollHeight - $('#phase-main-people-lists')[0].offsetHeight);
+      if (fraction > 1) {
+        fraction = 1;
+      } else if (fraction < 0) {
+        fraction = 0;
+      }
+      var total = ($('#phase-main-people-scroller')[0].offsetHeight - $('#people-thumb').height()) * fraction;
+
+      var thumbTop = parseInt($('#people-thumb')[0].style.top);
+      var topDelta = Math.abs(total - thumbTop) !== 0 ? Math.abs(total - thumbTop) : 0.1;
+      var inverseSpeed = 30 / topDelta;
+      var maxInverseSpeed = 0.5;
+      if (inverseSpeed > maxInverseSpeed) {
+        inverseSpeed = maxInverseSpeed;
+      }
+
+      $('#people-thumb').finish().css("top", thumbTop + "px").animate({ 'top': total + "px" }, 400 * inverseSpeed);
+
+      var top = parseInt($('#phase-main-people-lists')[0].style.top);
+      $('#phase-main-people-lists').finish().css("top", top + "px").animate({
+        scrollTop: $('#phase-main-people-lists')[0].scrollTop + e.deltaY
+      }, 100, 'swing');
+
+      chatScrollManuallyHandled = true;
+  }
+
+  function updatePeopleScroll() {
+    var baseHeight = 160;
+    var tScrollHeight = ($('#phase-main-people-lists').prop('scrollHeight'));
+
+    var height;
+    var tDifference = tScrollHeight - $('#phase-main-people-lists').height();
+    var scrollerHeight = $('#phase-main-people-scroller').height();
+    if (tScrollHeight > 0 && tDifference > 0) {
+      height = scrollerHeight / tScrollHeight * scrollerHeight;
+    } else {
+      height = scrollerHeight;
+    }
+    if (height > scrollerHeight || height === 0) {
+      height = scrollerHeight;
+    }
+    $('#people-thumb').height(height + "px");
+
+    if (height === scrollerHeight) {
+      $('#phase-main-people-scroller').css('width', '0');
+    } else {
+      $('#phase-main-people-scroller').css('width', '8px');
+    }
+
+    var fraction;
+    if ($('#phase-main-people-lists')[0].scrollTop === 0) {
+      fraction = 0;
+    } else {
+      fraction = ($('#phase-main-people-lists')[0].scrollTop) / ($('#phase-main-people-lists')[0].scrollHeight - $('#phase-main-people-lists')[0].offsetHeight);
+      if (fraction > 1) {
+        fraction = 1;
+      } else if (fraction < 0) {
+        fraction = 0;
+      }
+    }
+
+    var total = ($('#phase-main-people-scroller')[0].offsetHeight - $('#people-thumb').height()) * fraction;
+    $('#people-thumb').css('top', total + 'px');
+  }
+
+  $('#phase-main-people-lists').on('DOMNodeInserted DOMNodeRemoved', function() {
+    updatePeopleScroll();
+  });
+
+  $(window).on('resize', function() {
+    updatePeopleScroll();
+  });
+
 
   // end custom scrollbar
 
@@ -1171,7 +1251,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       if (selectedDiscID != discID)
         return;
 
-      var section = $('#phase-main-people');
+      var section = $('#phase-main-people-lists');
       var sectionList = section.children("#people-discussion").children(".phase-main-people-section-list");
 
       // Clear List
@@ -2204,7 +2284,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
   /* Handling Users Online/Offline */
   function refreshList() {
     // master div
-    var section = $('#phase-main-people');
+    var section = $('#phase-main-people-lists');
     var sectionList = section.children("#people-phase").children(".phase-main-people-section-list");
     sectionList.html('');
 
