@@ -85,7 +85,7 @@ define(['vendor/peer', 'vendor/howler'], function() {
       for (var index in this.peerCalls) {
         if (this.peerCalls[index].incoming)
           this.peerCalls[index].incoming.close();
-        if (peerCalls[index].outgoing)
+        if (this.peerCalls[index].outgoing)
           this.peerCalls[index].outgoing.close();
       }
     },
