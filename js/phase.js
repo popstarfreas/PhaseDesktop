@@ -899,6 +899,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       lastMessageInput = typeof inprogressMessages[selectedDiscID] !== 'undefined' ? inprogressMessages[selectedDiscID] : "";
 
       // Set status of alert icon
+      /* TODO: Add alert bell back
       if (setting_discussionAlertEnabled[discID]) {
         $('#alert-bell').removeClass('alert-bell-inactive').addClass('alert-bell-active');
         $('#alert-bell').attr('title', 'Disable Alerts for this discussion').tooltip('fixTitle');
@@ -906,6 +907,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
         $('#alert-bell').addClass('alert-bell-inactive').removeClass('alert-bell-active');
         $('#alert-bell').attr('title', 'Enable Alerts for this discussion').tooltip('fixTitle');
       }
+      */
 
       $('.selected').removeClass('selected');
       elem.addClass('selected');
