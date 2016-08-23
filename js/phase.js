@@ -894,10 +894,11 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
         sectionList.append(onlineUsers[i]);
       }
 
+      /* Skip for now due to performance issues
       var offlineUsersLength = offlineUsers.length;
       for (var i = 0; i < offlineUsersLength; i++) {
         sectionList.append(offlineUsers[i]);
-      }
+      }*/
 
       $('#people-section-discussion-count').text(onlineCount + " / " + discussionUsersLength);
 
