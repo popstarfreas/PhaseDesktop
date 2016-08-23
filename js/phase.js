@@ -642,7 +642,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
           }
         }
 
-        $('#chat-list-inprogress').append(inProgressMessageFormat(userID, username, systemName, avatar));
+        $('#phase-main-chat-inprogress').append(inProgressMessageFormat(userID, username, systemName, avatar));
         inProgressMessage = document.getElementById('user' + userID);
         var message = $(inProgressMessage).find('.chat-message-content');
         message.text(discussionLiveTyping[discID][userID]);
@@ -659,7 +659,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
     return moment(timestamp * 1000).calendar(null, {
       sameDay: "[Today at] LT",
       lastWeek: "dddd [at] LT",
-      sameElse: "dddd Do MMM, YYYY"
+      sameElse: "LT, dddd Do MMM, YYYY"
     });
   }
 
@@ -822,7 +822,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
           formatName = discussionUsers[discID][i].systemName == mySystemName ? '<span class="username">' + Utils.htmlspecialchars(discussionUsers[discID][i].name) + '</span>' : '<span class="username">' + Utils.htmlspecialchars(discussionUsers[discID][i].name) + '</span><i class="systemName">@' + discussionUsers[discID][i].systemName + "</i>";
           if (isUserOnline(discussionUsers[discID][i])) {
             onlineCount++;
-            status = '<i class="fa fa-circle" data-toggle="tooltip" data-placement="left" title="Online"></i>';
+            status = '<i class="fa fa-circle user-status-online" data-toggle="tooltip" data-placement="left" title="Online"></i>';
 
             if (discussionUsers[discID][i].name == nick && discussionUsers[discID][i].systemName == mySystemName) {
               onlineUsers.push(`
@@ -830,9 +830,9 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
                 <div class="people-entry-avatar"><img class="avatar_${discussionUsers[discID][i].userID}" src="${avatar}" /></div>
                 <div class="people-entry-username">${formatName}</div>
                 <div class="people-entry-icons">
-                ${status}
-                ${leaveDiscussionTemplate}
                 ${mod}
+                ${leaveDiscussionTemplate}
+                ${status}
                 </div>
               </div>`);
             } else {
@@ -842,8 +842,8 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
                 <div class="people-entry-avatar"><img class="avatar_${discussionUsers[discID][i].userID}" src="${avatar}" /></div>
                 <div class="people-entry-username">${formatName}</div>
                 <div class="people-entry-icons">
-                ${status}
                 ${mod}
+                ${status}
                 </div>
               </div>`);
               }
@@ -853,9 +853,9 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
                 <div class="people-entry-avatar"><img class="avatar_${discussionUsers[discID][i].userID}" src="${avatar}" /></div>
                 <div class="people-entry-username">${formatName}</div>
                 <div class="people-entry-icons">
-                ${status}
-                ${removeUserTemplate}
                 ${mod}
+                ${removeUserTemplate}
+                ${status}
                 </div>
               </div>`);
               }
@@ -868,8 +868,8 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
                 <div class="people-entry-avatar"><img class="avatar_${discussionUsers[discID][i].userID}" src="${avatar}" /></div>
                 <div class="people-entry-username">${formatName}</div>
                 <div class="people-entry-icons">
-                ${status}
                 ${mod}
+                ${status}
                 </div>
               </div>`);
             }
@@ -879,9 +879,9 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
                 <div class="people-entry-avatar"><img class="avatar_${discussionUsers[discID][i].userID}" src="${avatar}" /></div>
                 <div class="people-entry-username">${formatName}</div>
                 <div class="people-entry-icons">
-                ${status}
-                ${removeUserTemplate}
                 ${mod}
+                ${removeUserTemplate}
+                ${status}
                 </div>
               </div>`);
             }
@@ -1827,7 +1827,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
             <div class="people-entry-avatar"><img class="${users[i].UserID}" src="${avatar}" /></div>
             <div class="people-entry-username">${formatName}</div>
             <div class="people-entry-icons">
-              <i class="fa fa-circle people-entry-icons-online" data-toggle="tooltip" data-placement="left" title="" data-original-title="Online"></i>
+              <i class="fa fa-circle user-status-online" data-toggle="tooltip" data-placement="left" title="" data-original-title="Online"></i>
             </div>
           </div>`);
     }
@@ -2425,17 +2425,17 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
   function getImageSize(img, callback) {
     img = $(img);
 
-    var wait = setInterval(function() {
+    /*var wait = setInterval(function() {
       var w = img.width(),
         h = img.height();
 
       if (w && h) {
         done(w, h);
       }
-    }, 0);
+    }, 0);*/
 
     var onLoad;
-    img.on('load', onLoad = function() {
+    img.on('load', function() {
       done(img.width(), img.height());
     });
 
@@ -2447,8 +2447,6 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
         return;
       }
       isDone = true;
-
-      clearInterval(wait);
       img.off('load', onLoad);
 
       callback.apply(this, arguments);

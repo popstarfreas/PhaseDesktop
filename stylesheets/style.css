@@ -575,8 +575,30 @@
   flex-shrink: 0;
 }
 
-#phase-content #phase-main #phase-main-people .people-entry-icons-online {
+#phase-content #phase-main #phase-main-people .people-entry-icons > i {
+  margin-left: 5px;
+}
+
+#phase-content #phase-main #phase-main-people .people-entry-icons .add-mod {
+  color: #555;
+}
+
+
+#phase-content #phase-main #phase-main-people .people-entry-icons .add-mod:hover {
+  color: #FFC400;
+}
+
+#phase-content #phase-main #phase-main-people .people-entry-icons .mod {
+  color: #FFC400;
+}
+
+#phase-content #phase-main #phase-main-people .people-entry-icons .user-status-online {
   color: #0DBD19;
+  font-size: 12px;
+}
+
+#phase-content #phase-main #phase-main-people .people-entry-icons .user-status-offline {
+  color: #999;
   font-size: 12px;
 }
 
