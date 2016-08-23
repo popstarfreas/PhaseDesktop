@@ -240,91 +240,8 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
   // end custom scrollbar
 
   $('body').on('click', '.youtube-player', function() {
-    displayYoutubeVideo($(this));
+    Utils.displayYoutubeVideo($(this));
   });
-
-  function displayYoutubeVideo(elem) {
-    var videoID = elem.attr('data-id');
-    var parent = elem.parent();
-    elem.remove();
-    parent.append('<iframe width="640" height="360" src="https://www.youtube.com/embed/' + videoID + '?modestbranding=1&rel=0&autoplay=1&wmode=transparent&theme=light&color=white" frameborder="0" allowfullscreen></iframe>');
-  }
-
-  function strip_tags(input, allowed) {
-    allowed = (((allowed || '') + '')
-        .toLowerCase()
-        .match(/<[a-z][a-z0-9]*>/g) || [])
-      .join(''); // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
-    var tags = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi,
-      commentsAndPhpTags = /<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;
-    return input.replace(commentsAndPhpTags, '')
-      .replace(tags, function($0, $1) {
-        return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : '';
-      });
-  }
-
-  function htmlspecialchars(string, quote_style, charset, double_encode) {
-    if (typeof(string) == 'undefined' || string === null) {
-      StackTrace.get()
-        .then(function(stack) { log.info(stack) })
-        .catch(function(err) {});
-      return string;
-    }
-
-    var optTemp = 0,
-      i = 0,
-      noquotes = false;
-    if (typeof quote_style === 'undefined' || quote_style === null) {
-      quote_style = 2;
-    }
-    string = string.toString();
-    if (double_encode !== false) { // Put this first to avoid double-encoding
-      string = string.replace(/&/g, '&amp;');
-    }
-    string = string.replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
-
-    var OPTS = {
-      'ENT_NOQUOTES': 0,
-      'ENT_HTML_QUOTE_SINGLE': 1,
-      'ENT_HTML_QUOTE_DOUBLE': 2,
-      'ENT_COMPAT': 2,
-      'ENT_QUOTES': 3,
-      'ENT_IGNORE': 4
-    };
-    if (quote_style === 0) {
-      noquotes = true;
-    }
-    if (typeof quote_style !== 'number') { // Allow for a single string or an array of string flags
-      quote_style = [].concat(quote_style);
-      for (i = 0; i < quote_style.length; i++) {
-        // Resolve string input to bitwise e.g. 'ENT_IGNORE' becomes 4
-        if (OPTS[quote_style[i]] === 0) {
-          noquotes = true;
-        } else if (OPTS[quote_style[i]]) {
-          optTemp = optTemp | OPTS[quote_style[i]];
-        }
-      }
-      quote_style = optTemp;
-    }
-    if (quote_style & OPTS.ENT_HTML_QUOTE_SINGLE) {
-      string = string.replace(/'/g, '&#039;');
-    }
-    if (!noquotes) {
-      string = string.replace(/"/g, '&quot;');
-    }
-
-    return string;
-  }
-
-  // Currently only matches a URL with an image extension
-  function replaceURLWithImage(text) {
-    if (typeof(text) === 'undefined')
-      return text;
-
-    var exp = /((\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])+\.(?:jpe?g|gif|png))/ig;
-    return text.replace(exp, "<a href='$1'>$1</a><br><img class=\"autoLinkedImage\" src='$1'/>");
-  }
 
   // Used to scroll to the bottom of the chat list
   function scrollChatByHeight(height) {
@@ -902,7 +819,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
             mod = discussionUsers[discID][i].mod ? '<span class="mod" data-toggle="tooltip" data-placement="left" title="Discussion Moderator">&#9812;</span>' : '';
           }
 
-          formatName = discussionUsers[discID][i].systemName == mySystemName ? '<span class="username">' + htmlspecialchars(discussionUsers[discID][i].name) + '</span>' : '<span class="username">' + htmlspecialchars(discussionUsers[discID][i].name) + '</span><i class="systemName">@' + discussionUsers[discID][i].systemName + "</i>";
+          formatName = discussionUsers[discID][i].systemName == mySystemName ? '<span class="username">' + Utils.htmlspecialchars(discussionUsers[discID][i].name) + '</span>' : '<span class="username">' + Utils.htmlspecialchars(discussionUsers[discID][i].name) + '</span><i class="systemName">@' + discussionUsers[discID][i].systemName + "</i>";
           if (isUserOnline(discussionUsers[discID][i])) {
             onlineCount++;
             status = '<i class="fa fa-circle" data-toggle="tooltip" data-placement="left" title="Online"></i>';
@@ -1293,7 +1210,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
     $('#people-section-call #autocomplete').remove();
 
     if ($('#people-section-call ul li').length === 0) {
-      $('#people-section-call ul').append('<li id="calluser-' + myuserID + '"><div class="people_user_avatar"><img class="avatar_' + myuserID + '" src="' + myAvatar + '"></div><div class="people_user_right"><span class="people-username"><span class="username">' + htmlspecialchars(nick) + '</span></span></div></li>');
+      $('#people-section-call ul').append('<li id="calluser-' + myuserID + '"><div class="people_user_avatar"><img class="avatar_' + myuserID + '" src="' + myAvatar + '"></div><div class="people_user_right"><span class="people-username"><span class="username">' + Utils.htmlspecialchars(nick) + '</span></span></div></li>');
       $('#people-section-call-count').text('1');
     }
 
@@ -1604,7 +1521,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
 
   socket.on('new discussion', function(data) {
     if (!$('#disc' + data.discID).length) {
-      var message = strip_tags(data.lastMessage);
+      var message = Utils.strip_tags(data.lastMessage);
       $('#discussion_list').prepend('<div class="discussion" id="disc' + data.discID + '"><p class="subject">' + data.name + '</p><p class="recent_message">' + message + '</p></div>');
     }
   });
@@ -1659,7 +1576,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
       var messageIP = messages[i].IP;
       var messageTag = messages[i].tag;
       var messageTagColour = messages[i].tagcolour;
-      messages[i].content = htmlspecialchars(messages[i].content);
+      messages[i].content = Utils.htmlspecialchars(messages[i].content);
 
       // Highlighting
       // TODO: send uid to verify it is THE system
@@ -1898,7 +1815,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
     for (var i = 0; i < users.length; i++) {
       avatar = typeof updatedAvatars[users[i].UserID] !== 'undefined' ? updatedAvatars[users[i].UserID] : typeof users[i].Avatar !== 'undefined' ? users[i].Avatar : '/img/default.png';
       avatar = avatar.replace(/^\//, 'https://t.dark-gaming.com:3001/');
-      formatName = users[i].systemName !== mySystemName ? htmlspecialchars(users[i].name) + "<i>@" + users[i].systemName + "</i>" : htmlspecialchars(users[i].name);
+      formatName = users[i].systemName !== mySystemName ? Utils.htmlspecialchars(users[i].name) + "<i>@" + users[i].systemName + "</i>" : Utils.htmlspecialchars(users[i].name);
       //sectionList.append('<li><div class="people_user_avatar"><img class="avatar_' + users[i].UserID + '" src="' + avatar + '"/></div><div class="people_user_right"><span class="people-username">' + formatName + '</span></div><i class="fa fa-circle" data-toggle="tooltip" data-placement="left" title="Online"></i></li>');
       sectionList.append(`<div class="people-entry">
             <div class="people-entry-avatar"><img class="${users[i].UserID}" src="${avatar}" /></div>
@@ -1923,11 +1840,11 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
         if (discussions[id].Creator !== null)
           discussionCreator[discussions[id].ID] = discussions[id].Creator;
         if (discussions[id].Message !== null)
-          message = htmlspecialchars(strip_tags(discussions[id].Message));
+          message = Utils.htmlspecialchars(Utils.strip_tags(discussions[id].Message));
         else
           message = "[None]";
 
-        $('#phase-main-discussionslist').append('<div class="discussion" id="disc' + discussions[id].ID + '"><div class="discussion-title">' + strip_tags(discussions[id].Name) + '</div><div class="spinner-container"><div class="spinner"> <div class="bounce1"></div> <div class="bounce2"></div> <div class="bounce3"></div></div><span style="display: none" class="discussion-alert glyphicon glyphicon-exclamation-sign"></span></div><div class="discussion-preview">' + (discussions[id].Username !== null ? htmlspecialchars(discussions[id].Username) + ': ' : discussions[id].GuestName !== null ? htmlspecialchars(discussions[id].GuestName) + ': ' : '') + Utils.strip_bbcode(message) + '</div></div>');
+        $('#phase-main-discussionslist').append('<div class="discussion" id="disc' + discussions[id].ID + '"><div class="discussion-title">' + Utils.strip_tags(discussions[id].Name) + '</div><div class="spinner-container"><div class="spinner"> <div class="bounce1"></div> <div class="bounce2"></div> <div class="bounce3"></div></div><span style="display: none" class="discussion-alert glyphicon glyphicon-exclamation-sign"></span></div><div class="discussion-preview">' + (discussions[id].Username !== null ? Utils.htmlspecialchars(discussions[id].Username) + ': ' : discussions[id].GuestName !== null ? Utils.htmlspecialchars(discussions[id].GuestName) + ': ' : '') + Utils.strip_bbcode(message) + '</div></div>');
         g_discussions[[id].ID] = discussions[id];
       }
     }
@@ -2069,9 +1986,9 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
     if (chat.scrollTop < (chat.scrollHeight - chat.offsetHeight - 50))
       bottom = false;
     if (msg.lastIndexOf('/', 0) !== 0) {
-      //var formattedMessage = '<span class="chat-message-info"><span class="chat-name">' + nick + '</span><span class="chat-timestamp">' + moment().format('LT') + '</span></span>' + htmlspecialchars(msg);
+      //var formattedMessage = '<span class="chat-message-info"><span class="chat-name">' + nick + '</span><span class="chat-timestamp">' + moment().format('LT') + '</span></span>' + Utils.htmlspecialchars(msg);
       //formattedMessage = bbcode(replaceURLWithImage(formattedMessage));
-      var formattedMessage = formatChatMessage(null, null, myuserID, nick, htmlspecialchars(msg), nick, false, Math.floor(Date.now() / 1000), mySystemName, myAvatar);
+      var formattedMessage = formatChatMessage(null, null, myuserID, nick, Utils.htmlspecialchars(msg), nick, false, Math.floor(Date.now() / 1000), mySystemName, myAvatar);
       $(formattedMessage).appendTo('#phase-main-chat-messages-list').find('.autoLinkedImage').each(function() {
         getImageSize($(this), function(width, height) {
           scrollChatByHeight(height);
@@ -2152,9 +2069,9 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
     if (chat.scrollTop < (chat.scrollHeight - chat.offsetHeight - 50))
       bottom = false;
     if (msg.indexOf('/', 0) !== 0) {
-      //var formattedMessage = '<span class="chat-message-info"><span class="chat-name">' + nick + '</span><span class="chat-timestamp">' + moment().format('LT') + '</span></span>' + htmlspecialchars(msg);
+      //var formattedMessage = '<span class="chat-message-info"><span class="chat-name">' + nick + '</span><span class="chat-timestamp">' + moment().format('LT') + '</span></span>' + Utils.htmlspecialchars(msg);
       //formattedMessage = bbcode(replaceURLWithImage(formattedMessage));
-      var formattedMessage = formatChatMessage(null, null, myuserID, nick, htmlspecialchars(msg), nick, false, Math.floor(Date.now() / 1000), mySystemName, myAvatar, currentMessageID);
+      var formattedMessage = formatChatMessage(null, null, myuserID, nick, Utils.htmlspecialchars(msg), nick, false, Math.floor(Date.now() / 1000), mySystemName, myAvatar, currentMessageID);
       $(Utils.avatarLoad(updatedAvatars, formattedMessage)).appendTo('#phase-main-chat-messages-list').find('.autoLinkedImage').each(function() {
         getImageSize($(this), function(width, height) {
           scrollChatByHeight(height);
@@ -2537,7 +2454,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
     if (typeof(notified) !== 'boolean')
       notified = false;
 
-    username = htmlspecialchars(username);
+    username = Utils.htmlspecialchars(username);
 
     var avatarImage = avatar; //'https://dark-gaming.com/img/default.png';
     var avatarFormat = "";
@@ -2606,7 +2523,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
 
   function inProgressMessageFormat(id, nick, systemName, avatar) {
     var avatarImage = typeof avatar === 'undefined' ? 'https://dark-gaming.com/img/default.png' : avatar;
-    //return '<li id="user' + id + '" class="inprogress"><div class="chat-message-avatar"><img src="' + avatarImage + '"></div><div class="chat-message-right"><span class="chat-message-info">' + '<span class="chat-name">' + htmlspecialchars(nick) + '</span></span><span class="message"></span></div></li>';
+    //return '<li id="user' + id + '" class="inprogress"><div class="chat-message-avatar"><img src="' + avatarImage + '"></div><div class="chat-message-right"><span class="chat-message-info">' + '<span class="chat-name">' + Utils.htmlspecialchars(nick) + '</span></span><span class="message"></span></div></li>';
 
     return `<div id="user${id}" class="chat-message">
               <div class="chat-message-left">
@@ -3001,7 +2918,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
 
     oldHeight = $('#chat-list').height();
 
-    $('#phase-nav-discussiontitle').html("Search Results in <i>" + htmlspecialchars(currentTitle) + "</i> for <b>" + htmlspecialchars(data.terms) + "</b>");
+    $('#phase-nav-discussiontitle').html("Search Results in <i>" + Utils.htmlspecialchars(currentTitle) + "</i> for <b>" + Utils.htmlspecialchars(data.terms) + "</b>");
     $('.selected').removeClass('selected');
     selectedDiscID = -1;
 
@@ -3015,7 +2932,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
       var messageIP = results[i].IP;
       var messageTag = results[i].tag;
       var messageTagColour = results[i].tagcolour;
-      results[i].content = htmlspecialchars(results[i].content);
+      results[i].content = Utils.htmlspecialchars(results[i].content);
       // Highlighting
       // TODO: send uid to verify it is THE system
       var highlighted = false;
@@ -3068,7 +2985,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
       messageText = messageText.slice(0, 40) + '...';
     }
 
-    $('#phase-nav-discussiontitle').html("Displaying Deep History in <i>" + htmlspecialchars(currentTitle) + "</i> for <b>" + htmlspecialchars(messageText) + "</b>");
+    $('#phase-nav-discussiontitle').html("Displaying Deep History in <i>" + Utils.htmlspecialchars(currentTitle) + "</i> for <b>" + Utils.htmlspecialchars(messageText) + "</b>");
     socket.emit('discussion message surrounding history', { discID: searchDiscID, messageID: parseInt($(this).attr('id')) });
   });
 
@@ -3099,7 +3016,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
       var messageIP = messages[i].IP;
       var messageTag = messages[i].tag;
       var messageTagColour = messages[i].tagcolour;
-      messages[i].content = htmlspecialchars(messages[i].content);
+      messages[i].content = Utils.htmlspecialchars(messages[i].content);
       // Highlighting
       // TODO: send uid to verify it is THE system
       var highlighted = false;
@@ -3148,7 +3065,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
       var messageIP = messages[i].IP;
       var messageTag = messages[i].tag;
       var messageTagColour = messages[i].tagcolour;
-      messages[i].content = htmlspecialchars(messages[i].content);
+      messages[i].content = Utils.htmlspecialchars(messages[i].content);
       // Highlighting
       // TODO: send uid to verify it is THE system
       var highlighted = false;
@@ -3195,7 +3112,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
       var messageIP = messages[i].IP;
       var messageTag = messages[i].tag;
       var messageTagColour = messages[i].tagcolour;
-      messages[i].content = htmlspecialchars(messages[i].content);
+      messages[i].content = Utils.htmlspecialchars(messages[i].content);
       // Highlighting
       // TODO: send uid to verify it is THE system
       var highlighted = false;
@@ -3379,8 +3296,8 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
 
   function newDiscussion(data) {
     if (!$('#disc' + data.discID).length) {
-      var message = strip_tags(data.lastMessage);
-      var discussionName = strip_tags(data.discussionName);
+      var message = Utils.strip_tags(data.lastMessage);
+      var discussionName = Utils.strip_tags(data.discussionName);
       var discussionPreviewMessage = Utils.strip_bbcode(message);
       var discussionHTML = `
       <div class="discussion" id="disc${data.discID}">
@@ -3392,8 +3309,8 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
 
   function newDiscussionResponse(data) {
     if (!$('#disc' + data.discID).length) {
-      var message = strip_tags(data.lastMessage);
-      var discussionName = strip_tags(data.name);
+      var message = Utils.strip_tags(data.lastMessage);
+      var discussionName = Utils.strip_tags(data.name);
       var discussionPreviewMessage = Utils.strip_bbcode(message);
       var discussionHTML = `
       <div class="discussion" id="disc${data.discID}">
@@ -3515,7 +3432,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
   function chatMessage(data) {
     var discID = data.discID,
       msgRaw = data.msg,
-      msg = htmlspecialchars(data.msg),
+      msg = Utils.htmlspecialchars(data.msg),
       uid = data.userID,
       timestamp = data.timestamp,
       rawUsername = data.username,
@@ -3645,7 +3562,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
         }
         discussionMessages[discID].push(formattedMessage);
 
-        $('#disc' + discID).children('.discussion-preview').html((username !== null ? (htmlspecialchars(username) + ': ') : '') + Utils.strip_bbcode(msg.replace(/<(?:.|\n)*?>/gm, '')));
+        $('#disc' + discID).children('.discussion-preview').html((username !== null ? (Utils.htmlspecialchars(username) + ': ') : '') + Utils.strip_bbcode(msg.replace(/<(?:.|\n)*?>/gm, '')));
 
         // If we haven't received the list, this will create a duplicate, so therefore the if statement avoids such
         if (discussionListReceived && $('#disc' + discID).length) {
@@ -3654,7 +3571,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
         }
       } else {
         // While we do not store the message, we must update the recent message text to reflect the new message
-        $('#disc' + discID).children('.discussion-preview').html((username !== null ? (htmlspecialchars(username) + ': ') : '') + Utils.strip_bbcode(msg.replace(/<(?:.|\n)*?>/gm, '')));
+        $('#disc' + discID).children('.discussion-preview').html((username !== null ? (Utils.htmlspecialchars(username) + ': ') : '') + Utils.strip_bbcode(msg.replace(/<(?:.|\n)*?>/gm, '')));
 
         // If we haven't received the list, this will create a duplicate, so therefore the if statement avoids such
         if (discussionListReceived && $('#disc' + discID).length) {
@@ -3829,10 +3746,10 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
       username = peers[i].Username;
       systemName = peers[i].SystemName;
       avatar = peers[i].Avatar;
-      extension = systemName !== mySystemName ? "<i>" + htmlspecialchars(systemName) + "</i>" : "";
+      extension = systemName !== mySystemName ? "<i>" + Utils.htmlspecialchars(systemName) + "</i>" : "";
 
       if (userID != myuserID) {
-        $('#people-section-call ul').append('<li id="calluser-' + userID + '"><div class="people_user_avatar"><img class="avatar_' + userID + '" src="' + avatar + '"></div><div class="people_user_right"><span class="people-username"><span class="username">' + htmlspecialchars(username) + extension + '</span></span></div></li>');
+        $('#people-section-call ul').append('<li id="calluser-' + userID + '"><div class="people_user_avatar"><img class="avatar_' + userID + '" src="' + avatar + '"></div><div class="people_user_right"><span class="people-username"><span class="username">' + Utils.htmlspecialchars(username) + extension + '</span></span></div></li>');
 
         log.debug("Pushing " + peers[i].PeerID);
         peerIDs.push(peers[i].PeerID);
@@ -3840,7 +3757,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
       }
     }
 
-    $('#people-section-call ul').append('<li id="calluser-' + myuserID + '"><div class="people_user_avatar"><img class="avatar_' + myuserID + '" src="' + myAvatar + '"></div><div class="people_user_right"><span class="people-username"><span class="username">' + htmlspecialchars(nick) + '</span></span></div></li>');
+    $('#people-section-call ul').append('<li id="calluser-' + myuserID + '"><div class="people_user_avatar"><img class="avatar_' + myuserID + '" src="' + myAvatar + '"></div><div class="people_user_right"><span class="people-username"><span class="username">' + Utils.htmlspecialchars(nick) + '</span></span></div></li>');
     $('#people-section-call-count').text(parseInt($('#people-section-call-count').text()) + 1);
 
     if (success) {
@@ -3858,8 +3775,8 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
 
     phone.addAllowedCaller(peerID);
 
-    var extension = systemName !== mySystemName ? "<i>" + htmlspecialchars(systemName) + "</i>" : "";
-    $('#people-section-call ul').append('<li id="calluser-' + userID + '"><div class="people_user_avatar"><img class="avatar_' + userID + '" src="' + avatar + '"></div><div class="people_user_right"><span class="people-username"><span class="username">' + htmlspecialchars(username) + extension + '</span></span></div></li>');
+    var extension = systemName !== mySystemName ? "<i>" + Utils.htmlspecialchars(systemName) + "</i>" : "";
+    $('#people-section-call ul').append('<li id="calluser-' + userID + '"><div class="people_user_avatar"><img class="avatar_' + userID + '" src="' + avatar + '"></div><div class="people_user_right"><span class="people-username"><span class="username">' + Utils.htmlspecialchars(username) + extension + '</span></span></div></li>');
     $('#people-section-call-count').text(parseInt($('#people-section-call-count').text()) + 1);
   }
 

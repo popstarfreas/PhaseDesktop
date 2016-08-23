@@ -269,6 +269,89 @@ define(['jquery', 'Item'], function($, Item) {
       // This only allows "<br />" (new lines) if the new line is not inside a <ul> and/or <li>
       text = text.replace("/(?!(\<ul\>|\<li\>|\<\/li\>).*?)\\n(?!((?!<).)*?(\<\/ul\>|\<\/li\>|\<li\>))/is", ' <br />');
       return text;
+    },
+
+    displayYoutubeVideo: function(elem) {
+      var videoID = elem.attr('data-id');
+      var parent = elem.parent();
+      elem.remove();
+      parent.append('<iframe width="640" height="360" src="https://www.youtube.com/embed/' + videoID + '?modestbranding=1&rel=0&autoplay=1&wmode=transparent&theme=light&color=white" frameborder="0" allowfullscreen></iframe>');
+    },
+
+    strip_tags: function(input, allowed) {
+      allowed = (((allowed || '') + '')
+          .toLowerCase()
+          .match(/<[a-z][a-z0-9]*>/g) || [])
+        .join(''); // making sure the allowed arg is a string containing only tags in lowercase (<a><b><c>)
+      var tags = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi,
+        commentsAndPhpTags = /<!--[\s\S]*?-->|<\?(?:php)?[\s\S]*?\?>/gi;
+      return input.replace(commentsAndPhpTags, '')
+        .replace(tags, function($0, $1) {
+          return allowed.indexOf('<' + $1.toLowerCase() + '>') > -1 ? $0 : '';
+        });
+    },
+
+    htmlspecialchars: function(string, quote_style, charset, double_encode) {
+      if (typeof(string) == 'undefined' || string === null) {
+        StackTrace.get()
+          .then(function(stack) { log.info(stack) })
+          .catch(function(err) {});
+        return string;
+      }
+
+      var optTemp = 0,
+        i = 0,
+        noquotes = false;
+      if (typeof quote_style === 'undefined' || quote_style === null) {
+        quote_style = 2;
+      }
+      string = string.toString();
+      if (double_encode !== false) { // Put this first to avoid double-encoding
+        string = string.replace(/&/g, '&amp;');
+      }
+      string = string.replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      var OPTS = {
+        'ENT_NOQUOTES': 0,
+        'ENT_HTML_QUOTE_SINGLE': 1,
+        'ENT_HTML_QUOTE_DOUBLE': 2,
+        'ENT_COMPAT': 2,
+        'ENT_QUOTES': 3,
+        'ENT_IGNORE': 4
+      };
+      if (quote_style === 0) {
+        noquotes = true;
+      }
+      if (typeof quote_style !== 'number') { // Allow for a single string or an array of string flags
+        quote_style = [].concat(quote_style);
+        for (i = 0; i < quote_style.length; i++) {
+          // Resolve string input to bitwise e.g. 'ENT_IGNORE' becomes 4
+          if (OPTS[quote_style[i]] === 0) {
+            noquotes = true;
+          } else if (OPTS[quote_style[i]]) {
+            optTemp = optTemp | OPTS[quote_style[i]];
+          }
+        }
+        quote_style = optTemp;
+      }
+      if (quote_style & OPTS.ENT_HTML_QUOTE_SINGLE) {
+        string = string.replace(/'/g, '&#039;');
+      }
+      if (!noquotes) {
+        string = string.replace(/"/g, '&quot;');
+      }
+
+      return string;
+    },
+
+    // Currently only matches a URL with an image extension
+    replaceURLWithImage: function(text) {
+      if (typeof(text) === 'undefined')
+        return text;
+
+      var exp = /((\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])+\.(?:jpe?g|gif|png))/ig;
+      return text.replace(exp, "<a href='$1'>$1</a><br><img class=\"autoLinkedImage\" src='$1'/>");
     }
   };
 
