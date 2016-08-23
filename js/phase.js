@@ -1646,7 +1646,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
   }
 
   // Check whether we need to get more history (or messages) (if scrollbar is near top)
-  $('#content-chat').on('scroll', function() {
+  $('#phase-main-chat-messages').on('scroll', function() {
     var view = {
       top: $(this).scrollTop(),
       bottom: $(this).scrollTop() + $(this).height(),
@@ -1732,13 +1732,16 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
             index = i;
           }
 
-          var oldHeight = $('#chat-list').height();
-          $('#chat-list').prepend(html);
+          var oldHeight = $('#phase-main-chat-messages-list').height();
+          chatScrollBar.preventUpdate = true;
+          $('#phase-main-chat-messages-list').prepend(html);
           earliestMessageIndex = index;
 
           // Fix scroll height now that we have changed DOM
-          var chat = document.getElementById('content-chat');
-          chat.scrollTop += $('#chat-list').height() - oldHeight;
+          var chat = document.getElementById('phase-main-chat-messages');
+          chat.scrollTop += $('#phase-main-chat-messages-list').height()-oldHeight;
+          chatScrollBar.preventUpdate = false;
+          chatScrollBar.update();
         }
       }
     }
@@ -1758,7 +1761,8 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
 
     var selected = selectedDiscID == discID && selectedDiscID;
     var messagesCount = messages.length;
-    var oldHeight = $('#chat-list').height();
+    var oldHeight = $('#phase-main-chat-messages-list').height();
+    chatScrollBar.preventUpdate = true;
     for (var i = messagesCount - 1; i >= 0; i--) {
       var messageIP = messages[i].IP;
       var messageTag = messages[i].tag;
@@ -1781,7 +1785,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
       }
 
       var messageFormatted = formatChatMessage(messageTag, messageTagColour, messages[i].userID, messages[i].username, messages[i].content, messages[i].accountName, messages[i].guest, messages[i].timestamp, messages[i].systemName, messages[i].avatar, null, highlighted, messageIP);
-      $('#chat-list').prepend(Utils.avatarLoad(updatedAvatars, messageFormatted));
+      $('#phase-main-chat-messages-list').prepend(Utils.avatarLoad(updatedAvatars, messageFormatted));
       discussionMessages[discID].unshift(messageFormatted);
     }
 
@@ -1794,8 +1798,10 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
     // We now have to scroll to counter the change in height
     // due to the new information (this keeps the user at
     // the place they were at before adding the history)
-    var chat = document.getElementById('content-chat');
-    chat.scrollTop += $('#chat-list').height() - oldHeight;
+    var chat = document.getElementById('phase-main-chat-messages');
+    chat.scrollTop += $('#phase-main-chat-messages-list').height()-oldHeight;
+    chatScrollBar.preventUpdate = false;
+    chatScrollBar.update();
   });
 
   // When we are loggedin, load discussion messages
@@ -2456,6 +2462,7 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
 
     username = Utils.htmlspecialchars(username);
 
+    avatar = avatar.replace(/^\//g, 'https://t.dark-gaming.com:3001/');
     var avatarImage = avatar; //'https://dark-gaming.com/img/default.png';
     var avatarFormat = "";
     if (uid == -2) {

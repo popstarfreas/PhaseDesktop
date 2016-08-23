@@ -55,19 +55,19 @@
 }
 
 #phase-content #phase-nav #phase-nav-discussiontitle #phase-nav-discussiontitle-edit {
-	display: inline;
+  display: inline;
 }
 
 #phase-content #phase-nav #phase-nav-discussiontitle #phase-nav-discussiontitle-edit #phase-nav-discussiontitle_input {
-	font-weight: bold;
-	font-size: 16px;
-	color: #eee;
+  font-weight: bold;
+  font-size: 16px;
+  color: #eee;
   font-family: 'Open Sans', sans-serif;
   outline: none;
   text-align: center;
   background: none;
-	border: none;
-	width: 100%;
+  border: none;
+  width: 100%;
 }
 
 #phase-content #phase-nav #phase-nav-icons {
@@ -233,7 +233,9 @@
   color: #ccc
 }
 
+
 /* Alt Version */
+
 #phase-content #phase-main #phase-main-discussions_alt-display {
   width: 250px;
   background: #2e3136;
@@ -432,7 +434,7 @@
 }
 
 #phase-content #phase-main #phase-main-chat #phase-main-chat-messages .chat-message .chat-message-right .chat-message-content img {
-    max-width: 100%;
+  max-width: 100%;
 }
 
 #phase-content #phase-main #phase-main-chat #phase-main-chat-scroller {
@@ -545,12 +547,12 @@
 }
 
 #phase-content #phase-main #phase-main-people .people-entry {
-	display: flex;
-	font-size: 14px;
-	color: #CCC;
-	margin-top: 5px;
-	padding-left: 5px;
-	padding-right: 10px;
+  display: flex;
+  font-size: 14px;
+  color: #CCC;
+  margin-top: 5px;
+  padding-left: 5px;
+  padding-right: 10px;
 }
 
 #phase-content #phase-main #phase-main-people .people-entry-avatar > img {
@@ -561,18 +563,21 @@
 }
 
 #phase-content #phase-main #phase-main-people .people-entry-username {
-	flex-grow: 1;
-	margin-top: 4px;
-	margin-left: 10px;
+  flex: 1;
+  margin-top: 4px;
+  margin-left: 10px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 #phase-content #phase-main #phase-main-people .people-entry-icons {
-	flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 #phase-content #phase-main #phase-main-people .people-entry-icons-online {
-	color: #0DBD19;
-	font-size: 12px;
+  color: #0DBD19;
+  font-size: 12px;
 }
 
 #phase-content #phase-main #phase-main-people #phase-main-people-scroller {

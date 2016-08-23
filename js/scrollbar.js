@@ -4,6 +4,9 @@ define(['jquery', 'lib/class'], function($) {
       this.scrollingElement = scrollingElement;
       this.scroller = scroller;
       this.thumb = thumb;
+      this.lastUpdate = 0;
+      this.updateTimeout = null;
+      this.preventUpdate = false;
     },
 
     handle: function(e) {
@@ -32,6 +35,21 @@ define(['jquery', 'lib/class'], function($) {
     },
 
     update: function() {
+    	if (this.preventUpdate) {
+    		return;
+    	}
+
+    	var self = this;
+      if (Date.now() - this.lastUpdate < 50) {
+        if (this.updateTimeout !== null) {
+          clearTimeout(this.updateTimeout);
+        }
+
+        this.updateTimeout = setTimeout(function() {
+        	self.update();
+        }, 200);
+      }
+
       var displayedMessages = this.scrollingElement.children().length;
       var baseDisplayedMessages = 40;
       var baseHeight = 160;
@@ -71,6 +89,8 @@ define(['jquery', 'lib/class'], function($) {
 
       var total = (this.scroller[0].offsetHeight - this.thumb.height()) * fraction;
       this.thumb.css('top', total + 'px');
+
+      this.lastUpdate = Date.now();
     }
   });
 
