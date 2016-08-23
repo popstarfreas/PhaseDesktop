@@ -2,7 +2,7 @@
 //! version 0.1
 //! author: Aaren C
 
-define(['vendor/peer', 'vendor/howler'], function() {
+define(['lib/class', 'vendor/peer', 'vendor/howler'], function() {
   // Handle prefixed versions
   navigator.getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia);
 

@@ -4,7 +4,7 @@
 
 /* jshint shadow:true */
 
-define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 'vendor/mobiledetect', 'bootstrap'], function(Item, Phone, socketCluster, $, moment, MobileDetect) {
+define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 'vendor/mobiledetect', 'bootstrap'], function(Scrollbar, Utils, Item, Phone, socketCluster, $, moment, MobileDetect) {
   $(function() {
     $('[data-toggle="tooltip"]').tooltip();
   });
@@ -76,6 +76,11 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
   var waitingScroll = false;
   var lastNotification = null;
   var editQueueIconTimeouts = [];
+
+  // Custom Scrollbars
+  var chatScrollBar = new Scrollbar($('#phase-main-chat-messages'), $('#phase-main-chat-scroller'), $('#chat-thumb'));
+  var peopleScrollBar = new Scrollbar($('#phase-main-people-lists'), $('#phase-main-people-scroller'), $('#people-thumb'));
+  var discussionsScrollBar = new Scrollbar($('#phase-main-discussionslist'), $('#phase-main-discussions-scroller'), $('#discussions-thumb'));
 
   // Calls
   var phone = new Phone();
@@ -198,519 +203,39 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       responsiveVoice.speak(username + " is calling you on Phase.");
   }
 
-  function strip_bbcode(text) {
-    var search = [
-      // Slight problem with [url] conflict "/(?<!.)((http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?)/",
-      /\[notag\](\[)(.*?)\[\/notag\]/i,
-      /\[b\](.*?)\[\/b\]/gi,
-      /\[i\](.*?)\[\/i\]/gi,
-      /\[u\](.*?)\[\/u\]/gi,
-      /\[ul\](.*?)\[\/ul\]/gi,
-      /\[li\](.*?)\[\/li\]/gi,
-      /\[s\](.*?)\[\/s\]/,
-      /\[img\](.*?)\[\/img\]/gi,
-      /\[url=(.*?)\](.*?)\[\/url\]/gi,
-      /\[url\](.*?)\[\/url\]/gi,
-      /\[quote=(.*?)\](.*?)\[\/quote\]/gi,
-      /\[center\](.*?)\[\/center\]/gi,
-      //'/\[youtube](.*?)?v=(.*?)\[\/youtube\]/',
-      //ASCII
-      /&amp;#91;/gi,
-      //smileys
-      /\:\)/gi,
-      /\:\(/gi,
-      /\&gt\;:D/gi,
-      /\:D/gi,
-      /\:P/gi,
-      /\;\)/gi,
-      /\(evil\)/gi,
-      /\(bash\)/gi,
-      /\(poolparty\)/gi,
-      /\(party\)/gi,
-      /\(hi\)/gi,
-      /\(knuckles\)/gi,
-      /\:O/gi,
-      /\\\o\//gi,
-      /\[#(.*?)\]/gi,
-      /\[color=(.*?)\](.*?)\[\/color\]/gi,
-      /\[colour=(.*?)\](.*?)\[\/colour\]/gi
-    ];
+  
 
-    var replace = [
-      // "<a href=\"$2\">$2</a>",
-      '$2',
-      '$1',
-      '$1',
-      '$1',
-      '$1',
-      '$1',
-      '$1',
-      '$1',
-      '$1',
-      '$1', // This is now handled by linkify
-      '$2',
-      '$1',
-      //'<iframe width="560" height="315" src="//www.youtube-nocookie.com/embed/$2?rel=0" frameborder="0" allowfullscreen></iframe>',
-      //ASCII
-      '[',
-      //smileys
-      ':)',
-      ':(',
-      '>:D',
-      ':D',
-      ':P',
-      ';)',
-      '(evil)',
-      '(bash)',
-      '(poolparty)',
-      '(party)',
-      '(hi)',
-      '(knuckles)',
-      ':O',
-      '\\o/',
-      '&#$1;',
-      '$2',
-      '$2'
-
-    ];
-
-    for (var index in search) {
-      text = text.replace(search[index], replace[index]);
-    }
-
-    return text;
-  }
-
-  function getItemNameFromID(id) {
-    if (id > 0) {
-      return Item.IDs[id];
-    } else if (id < 0) {
-      return Item.NIDs[id];
-    } else {
-      // Return at least something...
-      return "Beenade";
-    }
-  }
-
-  function getItemImageNameFromID(id) {
-    // Fallback
-    if (typeof Item.IDs[id] === 'undefined' && typeof Item.NIDs[id] === 'undefined')
-      return "Beenade";
-
-    if (id > 0) {
-      return encodeURIComponent(Item.IDs[id].replace(/ /g, '_'));
-    } else if (id < 0) {
-      return encodeURIComponent(Item.NIDs[id].replace(/ /g, '_'));
-    } else {
-      // Return at least something...
-      return "Beenade";
-    }
-  }
-
-  // avatarLoad is used to load avatars when a discussion switched to. This is
-  // important as it means that any updated avatars from messages already saved
-  // will get automatically updated.
-  function avatarLoad(text) {
-    // Replace text with avatar image.
-    // The capture group is the userID
-    var search = [
-      /\{avatar:(.*?)\}/g
-    ];
-
-    var replace = [
-      function(match, capture) {
-        return updatedAvatars[capture];
-      }
-    ];
-
-    for (var index in search) {
-      text = text.replace(search[index], replace[index]);
-    }
-    return text;
-  }
-
-  function bbcode(text) {
-    if (typeof text === 'undefined' || text === null)
-      return text;
-    //text = strip_tags(text);
-    text = text.replace(/\r?\n/g, '<br />');
-
-    var videoSearch = [
-      // Videos
-      /(?:(?:http|https):\/\/)?(?:www\.)?((?:youtube\.com|youtu\.be)\/(?:watch\?v=)?([^\s&]+)([^\s]*))/g,
-      /(?:(?:http|https):\/\/)?((?:www\.)?(?:vimeo\.com)\/(.+))/g,
-      /(?:(?:http|https):\/\/)?((?:dailymotion\.com|dai\.ly)\/(.+))/g
-    ];
-
-    var videoReplace = [
-      '<a href="https://$1" target="_blank">$1</a><br /><div class="youtube-container"><div class="youtube-player" data-id="$2"><img class="youtube-thumb autoLinkedImage" src="https://i.ytimg.com/vi/$2/hqdefault.jpg"><div class="play-button"></div></div></div>',
-      '<a href="https://$1" target="_blank">$1</a><br /><iframe src="//player.vimeo.com/video/$2" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe><br />',
-      '<a href="https://$1" target="_blank">$1</a><br /><iframe frameborder="0" width="560" height="315" src="https://www.dailymotion.com/embed/video/$2?logo=0&foreground=ffffff&highlight=1bb4c6&background=000000" allowfullscreen></iframe><br />',
-    ];
-
-    var search = [
-      // Slight problem with [url] conflict "/(?<!.)((http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?)/",
-      /\[notag\](\[)(.*?)\[\/notag\]/i,
-      /\[b\](.*?)\[\/b\]/gi,
-      /\[i\](.*?)\[\/i\]/gi,
-      /\[u\](.*?)\[\/u\]/gi,
-      /\[ul\](.*?)\[\/ul\]/gi,
-      /\[li\](.*?)\[\/li\]/gi,
-      /\[s\](.*?)\[\/s\]/,
-      /\[img\](.*?)\[\/img\]/gi,
-      /\[url=(.*?)\](.*?)\[\/url\]/gi,
-      /\[url\](.*?)\[\/url\]/gi,
-      /\[center\](.*?)\[\/center\]/gi,
-      //'/\[youtube](.*?)?v=(.*?)\[\/youtube\]/',
-      //ASCII
-      /&amp;#91;/gi,
-      //(https:\/\/|http:\/\/)?(www\.)?([-a-zA-Z0-9@:%_\+.~#?&\/\/=]{2,256}?)(\.[a-z]{2,4})\b(\/(?:[-a-zA-Z0-9@:%_\+.~#&\/\/=])+)?([-a-zA-Z0-9@:%_\+~#?&\/\/=])?(\.(?:jpe?g|gif|png))?
-      // URL
-      /((https:\/\/|http:\/\/)?(www\.)?([a-zA-Z0-9-](?:[a-zA-Z0-9-]|([.])(?!\5)){2,256}?)(\.[a-z]{2,4})(:\d+)?(\/(?:[^\s\n])*?)?(\?[^\s\n]+)?(\.(?:jpe?g|gif|png))?)($|\s|\n|"|&quot;)/gi,
-
-      //smileys
-      /\:\)/gi,
-      /\:\(/gi,
-      /\&gt\;:D/gi,
-      /\:D/gi,
-      /\:P/gi,
-      /(^|\s);\)/gi,
-      /\(evil\)/gi,
-      /\(bash\)/gi,
-      /\(poolparty\)/gi,
-      /\(party\)/gi,
-      /\(hi\)/gi,
-      /\(knuckles\)/gi,
-      /\:O/gi,
-      /\\\o\//gi,
-      /\[#(.*?)\]/gi,
-      /\[color=(.*?)\](.*?)\[\/color\]/gi,
-      /\[colour=(.*?)\](.*?)\[\/colour\]/gi,
-      /:kappa:/gi,
-
-      // Terraria Chat Tags
-      /\[i(?:.*?):(\d+)\]/g,
-
-      // Avatars
-      /\{avatar:(\d+)\}/g
-    ];
-
-    var replace = [
-      // "<a href=\"$2\">$2</a>",
-      '&#91;$2',
-      '<b>$1</b>',
-      '<i>$1</i>',
-      '<u>$1</u>',
-      '</p><ul>$1</ul><p>',
-      '<li>$1</li>',
-      '<span style="text-decoration:line-through;">$1</span>',
-      '<a href="$1" target="_blank"><img class="post-image" src="$1" /></a>',
-      '<a href="$1" target="_blank">$2</a>',
-      '$1', // This is now handled by linkify
-      '</p><p class="center">$1</p><p class="p_hbreak">',
-      //'<iframe width="560" height="315" src="//www.youtube-nocookie.com/embed/$2?rel=0" frameborder="0" allowfullscreen></iframe>',
-      //ASCII
-      '[',
-      // URL and/or video
-      function(match, link, protocol, www, domain, regexDotGroup, tld, port, filepath, getParams, imageExtension, endChar) {
-        //console.log(match);
-        var videoSearchLength = videoSearch.length;
-        var videoSites = ["youtube", "youtu", "dailymotion", "vimeo"];
-        var output = link + endChar;
-        if (videoSites.indexOf(domain) > -1 && (typeof getParams !== 'undefined' && getParams.length > 0 || domain == "youtu" && tld == ".be")) {
-          for (var i = 0; i < videoSearchLength; i++) {
-            output = output.replace(videoSearch[i], videoReplace[i]);
-          }
-        } else if (typeof imageExtension !== 'undefined' && imageExtension.length > 0) {
-          var exp = /((\b((https?|ftp|file):\/\/)?[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])\.(?:jpe?g|gif|png))/ig;
-          output = link.replace(exp, "<a href='$1'>$1</a><br><img class=\"autoLinkedImage\" src='$1'/>") + endChar;
-        } else {
-          if (typeof protocol !== 'undefined' && protocol.length > 0) {
-            output = '<a href="' + link + '" target="_blank">' + link + '</a>' + endChar;
-          } else {
-            output = '<a href="http://' + link + '" target="_blank">' + link + '</a>' + endChar;
-          }
-        }
-
-        return output;
-      },
-      //smileys
-      '<img title=":)" src="https://dark-gaming.com/smileys/smile_face.gif" style="width: 15px">',
-      '<img title=":(" src="https://dark-gaming.com/smileys/sad_face.gif" style="width: 15px">',
-      '<img title=">&#58;D" src="https://dark-gaming.com/smileys/evil_face.gif" style="width: 15px">',
-      '<img title=":D" src="https://dark-gaming.com/smileys/grin_face.gif" style="width: 15px">',
-      '<img title=":P" src="https://dark-gaming.com/smileys/tongue_face.gif" style="width: 15px">',
-      '$1<img title=";)" src="https://dark-gaming.com/smileys/wink_face.gif" style="width: 15px">',
-      '<img title="(evil)" src="https://dark-gaming.com/smileys/evil_face.gif" style="width: 15px">',
-      '<img title="(bash)" src="https://dark-gaming.com/smileys/bash_face.gif" style="width: 15px">',
-      '<img title="(poolparty)" src="https://dark-gaming.com/smileys/poolparty.gif" style="width: 15px">',
-      '<img title="(party)" src="https://dark-gaming.com/smileys/party.gif" style="width: 15px">',
-      '<img title="(hi)" src="https://dark-gaming.com/smileys/hi.gif" style="width: 15px">',
-      '<img title="(knuckles)" src="https://dark-gaming.com/smileys/games_knuckles.gif" style="width: 15px">',
-      '<img title=":O" src="https://dark-gaming.com/smileys/suprised_face.gif" style="width: 15px">',
-      '<img title="\o/" src="https://dark-gaming.com/smileys/duop.gif" style="width: 15px">',
-      '&#$1;',
-      '<span style="color:$1;">$2</span>',
-      '<span style="color:$1;">$2</span>',
-      '<img title=":kappa:" src="img/kappa.png" style="width: 30px; height: 30px" />',
-
-      // Terraria Chat Tags
-      function(match, capture) {
-        return '<img class="autoLinkedImage terrariaItem" data-toggle="tooltip" data-placement="right" title="Terraria Item: ' + getItemNameFromID(capture - 1) + '" src="https://t.dark-gaming.com/view/items_images/' + getItemImageNameFromID(capture - 1) + '.png" />';
-      }
-    ];
-
-    for (var index in search) {
-      text = text.replace(search[index], replace[index]);
-    }
-
-    // This only allows "<br />" (new lines) if the new line is not inside a <ul> and/or <li>
-    text = text.replace("/(?!(\<ul\>|\<li\>|\<\/li\>).*?)\\n(?!((?!<).)*?(\<\/ul\>|\<\/li\>|\<li\>))/is", ' <br />');
-    return text;
-  }
-
-  // Custom scrollbar
-  var chatScrollManuallyHandled = false;
+  // CUSTOM SCROLLBARS
   var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
   document.addEventListener(mousewheelevt, function(e) {
     if ($('#phase-main-chat:hover').length > 0) {
-      handleChatScroll(e);
+      chatScrollBar.handle(e);
     }
     else if ($('#phase-main-people:hover').length > 0) {
-      handlePeopleScroll(e);
+      peopleScrollBar.handle(e);
     } else if ($('#phase-main-discussions:hover').length > 0) {
-      handleDiscussionsScroll(e);
+      discussionsScrollBar.handle(e);
     }
   }, false);
 
-  function handleChatScroll(e) {
-    var fraction = ($('#phase-main-chat-messages')[0].scrollTop + e.deltaY) / ($('#phase-main-chat-messages')[0].scrollHeight - $('#phase-main-chat-messages')[0].offsetHeight);
-    if (fraction > 1) {
-      fraction = 1;
-    } else if (fraction < 0) {
-      fraction = 0;
-    }
-    var total = ($('#phase-main-chat-scroller')[0].offsetHeight - $('#chat-thumb').height()) * fraction;
-
-    var thumbTop = parseInt($('#chat-thumb')[0].style.top);
-    var topDelta = Math.abs(total - thumbTop) !== 0 ? Math.abs(total - thumbTop) : 0.1;
-    var inverseSpeed = 30 / topDelta;
-    var maxInverseSpeed = 0.5;
-    if (inverseSpeed > maxInverseSpeed) {
-      inverseSpeed = maxInverseSpeed;
-    }
-
-    $('#chat-thumb').finish().css("top", thumbTop + "px").animate({ 'top': total + "px" }, 400 * inverseSpeed);
-
-    var top = parseInt($('#phase-main-chat-messages')[0].style.top);
-    $('#phase-main-chat-messages').finish().css("top", top + "px").animate({
-      scrollTop: $('#phase-main-chat-messages')[0].scrollTop + e.deltaY
-    }, 100, 'swing');
-
-    chatScrollManuallyHandled = true;
-  }
-
-  function updateChatScroll() {
-    var displayedMessages = $('#phase-main-chat-messages').children().length;
-    var baseDisplayedMessages = 40;
-    var baseHeight = 160;
-    var tScrollHeight = ($('#phase-main-chat-messages').prop('scrollHeight'));
-
-    var height;
-    var tDifference = tScrollHeight - $('#phase-main-chat-messages').height();
-    var scrollerHeight = $('#phase-main-chat-scroller').height();
-    if (tScrollHeight > 0 && tDifference > 0) {
-      height = scrollerHeight / tScrollHeight * scrollerHeight;
-    } else {
-      height = scrollerHeight;
-    }
-    if (height > scrollerHeight || height === 0) {
-      height = scrollerHeight;
-    }
-    $('#chat-thumb').height(height + "px");
-
-    if (height === scrollerHeight) {
-      $('#phase-main-chat-scroller').css('width', '0');
-    } else {
-      $('#phase-main-chat-scroller').css('width', '8px');
-    }
-
-    var fraction;
-    if ($('#phase-main-chat-messages')[0].scrollTop === 0) {
-      fraction = 0;
-    } else {
-      fraction = ($('#phase-main-chat-messages')[0].scrollTop) / ($('#phase-main-chat-messages')[0].scrollHeight - $('#phase-main-chat-messages')[0].offsetHeight);
-      if (fraction > 1) {
-        fraction = 1;
-      } else if (fraction < 0) {
-        fraction = 0;
-      }
-    }
-
-    var total = ($('#phase-main-chat-scroller')[0].offsetHeight - $('#chat-thumb').height()) * fraction;
-    $('#chat-thumb').css('top', total + 'px');
-  }
 
   $('#phase-main-chat-messages').on('DOMNodeInserted DOMNodeRemoved', function() {
-    updateChatScroll();
+    chatScrollBar.update();
   });
 
   $(window).on('resize', function() {
-    updateChatScroll();
+    chatScrollBar.update();
+    peopleScrollBar.update();
+    discussionsScrollBar.update();
   });
-
-  function handlePeopleScroll(e) {
-    var fraction = ($('#phase-main-people-lists')[0].scrollTop + e.deltaY) / ($('#phase-main-people-lists')[0].scrollHeight - $('#phase-main-people-lists')[0].offsetHeight);
-      if (fraction > 1) {
-        fraction = 1;
-      } else if (fraction < 0) {
-        fraction = 0;
-      }
-      var total = ($('#phase-main-people-scroller')[0].offsetHeight - $('#people-thumb').height()) * fraction;
-
-      var thumbTop = parseInt($('#people-thumb')[0].style.top);
-      var topDelta = Math.abs(total - thumbTop) !== 0 ? Math.abs(total - thumbTop) : 0.1;
-      var inverseSpeed = 30 / topDelta;
-      var maxInverseSpeed = 0.5;
-      if (inverseSpeed > maxInverseSpeed) {
-        inverseSpeed = maxInverseSpeed;
-      }
-
-      $('#people-thumb').finish().css("top", thumbTop + "px").animate({ 'top': total + "px" }, 400 * inverseSpeed);
-
-      var top = parseInt($('#phase-main-people-lists')[0].style.top);
-      $('#phase-main-people-lists').finish().css("top", top + "px").animate({
-        scrollTop: $('#phase-main-people-lists')[0].scrollTop + e.deltaY
-      }, 100, 'swing');
-
-      chatScrollManuallyHandled = true;
-  }
-
-  function updatePeopleScroll() {
-    var baseHeight = 160;
-    var tScrollHeight = ($('#phase-main-people-lists').prop('scrollHeight'));
-
-    var height;
-    var tDifference = tScrollHeight - $('#phase-main-people-lists').height();
-    var scrollerHeight = $('#phase-main-people-scroller').height();
-    if (tScrollHeight > 0 && tDifference > 0) {
-      height = scrollerHeight / tScrollHeight * scrollerHeight;
-    } else {
-      height = scrollerHeight;
-    }
-    if (height > scrollerHeight || height === 0) {
-      height = scrollerHeight;
-    }
-    $('#people-thumb').height(height + "px");
-
-    if (height === scrollerHeight) {
-      $('#phase-main-people-scroller').css('width', '0');
-    } else {
-      $('#phase-main-people-scroller').css('width', '8px');
-    }
-
-    var fraction;
-    if ($('#phase-main-people-lists')[0].scrollTop === 0) {
-      fraction = 0;
-    } else {
-      fraction = ($('#phase-main-people-lists')[0].scrollTop) / ($('#phase-main-people-lists')[0].scrollHeight - $('#phase-main-people-lists')[0].offsetHeight);
-      if (fraction > 1) {
-        fraction = 1;
-      } else if (fraction < 0) {
-        fraction = 0;
-      }
-    }
-
-    var total = ($('#phase-main-people-scroller')[0].offsetHeight - $('#people-thumb').height()) * fraction;
-    $('#people-thumb').css('top', total + 'px');
-  }
 
   $('#phase-main-people-lists').on('DOMNodeInserted DOMNodeRemoved', function() {
-    updatePeopleScroll();
+    peopleScrollBar.update();
   });
-
-  $(window).on('resize', function() {
-    updatePeopleScroll();
-  });
-
-  function handleDiscussionsScroll(e) {
-    var fraction = ($('#phase-main-discussionslist')[0].scrollTop + e.deltaY) / ($('#phase-main-discussionslist')[0].scrollHeight - $('#phase-main-discussionslist')[0].offsetHeight);
-      if (fraction > 1) {
-        fraction = 1;
-      } else if (fraction < 0) {
-        fraction = 0;
-      }
-
-      var height = ($('#phase-main-discussions-scroller')[0].offsetHeight - $('#discussions-thumb').height());
-      var total = height * fraction;
-      if (height-total < 20)
-        total -= 10;
-
-      var thumbTop = parseInt($('#discussions-thumb')[0].style.top);
-      var topDelta = Math.abs(total - thumbTop) !== 0 ? Math.abs(total - thumbTop) : 0.1;
-      var inverseSpeed = 30 / topDelta;
-      var maxInverseSpeed = 0.5;
-      if (inverseSpeed > maxInverseSpeed) {
-        inverseSpeed = maxInverseSpeed;
-      }
-
-      $('#discussions-thumb').finish().css("top", thumbTop + "px").animate({ 'top': total + "px" }, 400 * inverseSpeed);
-
-      var top = parseInt($('#phase-main-discussionslist')[0].style.top);
-      $('#phase-main-discussionslist').finish().css("top", top + "px").animate({
-        scrollTop: $('#phase-main-discussionslist')[0].scrollTop + e.deltaY
-      }, 100, 'swing');
-
-      chatScrollManuallyHandled = true;
-  }
-
-  function updateDiscussionsScroll() {
-    var baseHeight = 160;
-    var tScrollHeight = ($('#phase-main-discussionslist').prop('scrollHeight'));
-
-    var height;
-    var tDifference = tScrollHeight - $('#phase-main-discussionslist').height();
-    var scrollerHeight = $('#phase-main-discussions-scroller').height();
-    if (tScrollHeight > 0 && tDifference > 0) {
-      height = scrollerHeight / tScrollHeight * scrollerHeight;
-    } else {
-      height = scrollerHeight;
-    }
-    if (height > scrollerHeight || height === 0) {
-      height = scrollerHeight;
-    }
-    $('#discussions-thumb').height(height + "px");
-
-    if (height === scrollerHeight) {
-      $('#phase-main-discussions-scroller').css('width', '0');
-    } else {
-      $('#phase-main-discussions-scroller').css('width', '8px');
-    }
-
-    var fraction;
-    if ($('#phase-main-discussionslist')[0].scrollTop === 0) {
-      fraction = 0;
-    } else {
-      fraction = ($('#phase-main-discussionslist')[0].scrollTop) / ($('#phase-main-discussionslist')[0].scrollHeight - $('#phase-main-discussionslist')[0].offsetHeight);
-      if (fraction > 1) {
-        fraction = 1;
-      } else if (fraction < 0) {
-        fraction = 0;
-      }
-    }
-
-    var total = ($('#phase-main-discussions-scroller')[0].offsetHeight - $('#discussions-thumb').height()) * fraction;
-    $('#discussions-thumb').css('top', total + 'px');
-  }
 
   $('#phase-main-discussionslist').on('DOMNodeInserted DOMNodeRemoved', function() {
-    updateDiscussionsScroll();
+    discussionsScrollBar.update();
   });
-
-  $(window).on('resize', function() {
-    updateDiscussionsScroll();
-  });
-
 
   // end custom scrollbar
 
@@ -805,7 +330,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
   function scrollChatByHeight(height) {
     var chat = document.getElementById('phase-main-chat-messages');
     chat.scrollTop += height;
-    updateChatScroll();
+    chatScrollBar.update();
   }
 
   // Returns the images matched from text but only matches one with an image extension
@@ -1102,7 +627,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
             }
 
             // Set html, scroll chat by image
-            $('#phase-main-chat-messages-list').html(avatarLoad(html)).find('.autoLinkedImage').each(function() {
+            $('#phase-main-chat-messages-list').html(Utils.avatarLoad(updatedAvatars, html)).find('.autoLinkedImage').each(function() {
               getImageSize($(this), function(width, height) {
                 scrollChatByHeight(height);
               });
@@ -1143,7 +668,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
           // Scroll 'em down
           var chat = document.getElementById('phase-main-chat-messages');
           chat.scrollTop = chat.scrollHeight;
-          updateChatScroll();
+          chatScrollBar.update();
         }
       }
     }
@@ -1210,7 +735,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     // Scroll 'em down
     var chat = document.getElementById('phase-main-chat-messages');
     chat.scrollTop = chat.scrollHeight;
-    updateChatScroll();
+    chatScrollBar.update();
   });
 
   function getTimeString(timestamp) {
@@ -1654,7 +1179,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
 
     var chat = list.get(0);
     chat.scrollTop = chat.scrollHeight;
-    updateChatScroll();
+    chatScrollBar.update();
   }
 
   function addUserRequest() {
@@ -1756,7 +1281,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
 
     var chat = list.get(0);
     chat.scrollTop = chat.scrollHeight;
-    updateChatScroll();
+    chatScrollBar.update();
   }
 
   function addCallUserRequest() {
@@ -1985,7 +1510,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
 
     if (bottom) {
       chat.scrollTop = chat.scrollHeight;
-      updateChatScroll();
+      chatScrollBar.update();
     }
   });
 
@@ -2167,7 +1692,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       topMessageIndex = 0;
       bottomMessageIndex = messagesLength - 1;
       for (var i = 0; i < messagesLength; i++) {
-        $(avatarLoad(discussionMessages[discID][i])).appendTo('#phase-main-chat-messages-list').find('.autoLinkedImage').each(function() {
+        $(Utils.avatarLoad(updatedAvatars, discussionMessages[discID][i])).appendTo('#phase-main-chat-messages-list').find('.autoLinkedImage').each(function() {
           getImageSize($(this), function(width, height) {
             scrollChatByHeight(height);
           });
@@ -2180,7 +1705,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     // Scroll 'em down
     var chat = document.getElementById('phase-main-chat-messages');
     chat.scrollTop = chat.scrollHeight;
-    updateChatScroll();
+    chatScrollBar.update();
   });
 
   // Visible
@@ -2286,7 +1811,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
           var html = "";
           var index = earliestMessageIndex - 1;
           for (var i = earliestMessageIndex - 1; i >= 0 && i >= earliestMessageIndex - 41; i--) {
-            html = typeof discussionMessages[selectedDiscID][i] !== 'undefined' ? avatarLoad(discussionMessages[selectedDiscID][i]) + html : html;
+            html = typeof discussionMessages[selectedDiscID][i] !== 'undefined' ? Utils.avatarLoad(updatedAvatars, discussionMessages[selectedDiscID][i]) + html : html;
             index = i;
           }
 
@@ -2339,7 +1864,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       }
 
       var messageFormatted = formatChatMessage(messageTag, messageTagColour, messages[i].userID, messages[i].username, messages[i].content, messages[i].accountName, messages[i].guest, messages[i].timestamp, messages[i].systemName, messages[i].avatar, null, highlighted, messageIP);
-      $('#chat-list').prepend(avatarLoad(messageFormatted));
+      $('#chat-list').prepend(Utils.avatarLoad(updatedAvatars, messageFormatted));
       discussionMessages[discID].unshift(messageFormatted);
     }
 
@@ -2402,7 +1927,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
         else
           message = "[None]";
 
-        $('#phase-main-discussionslist').append('<div class="discussion" id="disc' + discussions[id].ID + '"><div class="discussion-title">' + strip_tags(discussions[id].Name) + '</div><div class="spinner-container"><div class="spinner"> <div class="bounce1"></div> <div class="bounce2"></div> <div class="bounce3"></div></div><span style="display: none" class="discussion-alert glyphicon glyphicon-exclamation-sign"></span></div><div class="discussion-preview">' + (discussions[id].Username !== null ? htmlspecialchars(discussions[id].Username) + ': ' : discussions[id].GuestName !== null ? htmlspecialchars(discussions[id].GuestName) + ': ' : '') + strip_bbcode(message) + '</div></div>');
+        $('#phase-main-discussionslist').append('<div class="discussion" id="disc' + discussions[id].ID + '"><div class="discussion-title">' + strip_tags(discussions[id].Name) + '</div><div class="spinner-container"><div class="spinner"> <div class="bounce1"></div> <div class="bounce2"></div> <div class="bounce3"></div></div><span style="display: none" class="discussion-alert glyphicon glyphicon-exclamation-sign"></span></div><div class="discussion-preview">' + (discussions[id].Username !== null ? htmlspecialchars(discussions[id].Username) + ': ' : discussions[id].GuestName !== null ? htmlspecialchars(discussions[id].GuestName) + ': ' : '') + Utils.strip_bbcode(message) + '</div></div>');
         g_discussions[[id].ID] = discussions[id];
       }
     }
@@ -2532,7 +2057,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
 
     // Update the recent message under Discussion Title
     var completeMsg = nick + ": " + msg;
-    $('#disc' + discID).children('.discussion-preview').html(strip_bbcode(completeMsg.replace(/<(?:.|\n)*?>/gm, '')));
+    $('#disc' + discID).children('.discussion-preview').html(Utils.strip_bbcode(completeMsg.replace(/<(?:.|\n)*?>/gm, '')));
 
     // Bump it up to the top
     if (!discussionListMoused && $('#disc' + discID).length)
@@ -2565,7 +2090,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     // message.
     if (bottom)
       chat.scrollTop = chat.scrollHeight;
-    updateChatScroll();
+    chatScrollBar.update();
   }
 
   function sendTestSuite() {
@@ -2596,12 +2121,12 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
 
     if (msg == "/alert") {
       var formattedMessage = formatChatMessage(null, null, -2, "System", "Alerts for this Discussion have been temporarily enabled.", "System", false, Math.floor(Date.now() / 1000), mySystemName, "/img/system.png", -1);
-      $(avatarLoad(formattedMessage)).appendTo('#phase-main-chat-messages-list');
+      $(Utils.avatarLoad(updatedAvatars, formattedMessage)).appendTo('#phase-main-chat-messages-list');
       setting_discussionAlertEnabled[discID] = true;
       $('#chat-textarea').val('');
       var chat = document.getElementById('phase-main-chat-messages');
       chat.scrollTop = chat.scrollHeight;
-      updateChatScroll();
+      chatScrollBar.update();
       return;
     }
 
@@ -2615,7 +2140,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
 
     // Update the recent message under Discussion Title
     var completeMsg = nick + ": " + msg;
-    $('#disc' + discID).children('.discussion-preview').html(strip_bbcode(completeMsg.replace(/<(?:.|\n)*?>/gm, '')));
+    $('#disc' + discID).children('.discussion-preview').html(Utils.strip_bbcode(completeMsg.replace(/<(?:.|\n)*?>/gm, '')));
 
     // Bump it up to the top
     if (!discussionListMoused && $('#disc' + discID).length)
@@ -2630,7 +2155,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       //var formattedMessage = '<span class="chat-message-info"><span class="chat-name">' + nick + '</span><span class="chat-timestamp">' + moment().format('LT') + '</span></span>' + htmlspecialchars(msg);
       //formattedMessage = bbcode(replaceURLWithImage(formattedMessage));
       var formattedMessage = formatChatMessage(null, null, myuserID, nick, htmlspecialchars(msg), nick, false, Math.floor(Date.now() / 1000), mySystemName, myAvatar, currentMessageID);
-      $(avatarLoad(formattedMessage)).appendTo('#phase-main-chat-messages-list').find('.autoLinkedImage').each(function() {
+      $(Utils.avatarLoad(updatedAvatars, formattedMessage)).appendTo('#phase-main-chat-messages-list').find('.autoLinkedImage').each(function() {
         getImageSize($(this), function(width, height) {
           scrollChatByHeight(height);
         });
@@ -2648,7 +2173,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     // message.
     if (bottom) {
       chat.scrollTop = chat.scrollHeight;
-      updateChatScroll();
+      chatScrollBar.update();
     }
 
     lastMessageInput = "";
@@ -2685,7 +2210,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     if (waitingScroll) {
       var chat = document.getElementById('phase-main-chat-messages');
       chat.scrollTop = chat.scrollHeight;
-      updateChatScroll();
+      chatScrollBar.update();
     }
 
     if (lastNotification !== null) {
@@ -3051,7 +2576,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     // System Suffix is used to identify users of foreign origin (account based in another table)
 
     // replace image with url not necessary anymore
-    message = bbcode(message);
+    message = Utils.bbcode(message);
 
     var systemSuffix = systemName !== mySystemName && systemName !== null ? '<span class="systemSuffix">@' + systemName + '</span>' : '';
     var messageTagHTML = typeof messageTag !== 'undefined' && messageTag !== null ? '<span class="chat-message-suffix" style="color: ' + messageTagColour + '">' + messageTag + '</span>' : '';
@@ -3509,7 +3034,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       }
 
       formattedMessage = formatChatMessage(messageTag, messageTagColour, results[i].userID, results[i].username, results[i].content, results[i].accountName, results[i].guest, results[i].timestamp, results[i].systemName, results[i].avatar, null, highlighted, messageIP);
-      $(avatarLoad(formattedMessage)).addClass('searchedMessage').attr('id', results[i].messageID).prependTo('#chat-list').find('.autoLinkedImage').each(function() {
+      $(Utils.avatarLoad(updatedAvatars, formattedMessage)).addClass('searchedMessage').attr('id', results[i].messageID).prependTo('#chat-list').find('.autoLinkedImage').each(function() {
         getImageSize($(this), function(width, height) {
           scrollChatByHeight(height);
         });
@@ -3521,7 +3046,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     } else {
       chat.scrollTop += $('#chat-list').height() - oldHeight;
     }
-    updateChatScroll();
+    chatScrollBar.update();
 
     // No longer waiting for search results
     waitingOnSearch = false;
@@ -3593,7 +3118,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       }
 
       formattedMessage = formatChatMessage(messageTag, messageTagColour, messages[i].userID, messages[i].username, messages[i].content, messages[i].accountName, messages[i].guest, messages[i].timestamp, messages[i].systemName, messages[i].avatar, null, highlighted, messageIP);
-      $(avatarLoad(formattedMessage)).addClass('deepHistoryMessge').attr('id', messages[i].messageID).prependTo('#chat-list').find('.autoLinkedImage').each(function() {
+      $(Utils.avatarLoad(updatedAvatars, formattedMessage)).addClass('deepHistoryMessge').attr('id', messages[i].messageID).prependTo('#chat-list').find('.autoLinkedImage').each(function() {
         getImageSize($(this), function(width, height) {
           scrollChatByHeight(height);
         });
@@ -3642,7 +3167,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       }
 
       formattedMessage = formatChatMessage(messageTag, messageTagColour, messages[i].userID, messages[i].username, messages[i].content, messages[i].accountName, messages[i].guest, messages[i].timestamp, messages[i].systemName, messages[i].avatar, null, highlighted, messageIP);
-      $(avatarLoad(formattedMessage)).addClass('deepHistoryMessge').attr('id', messages[i].messageID).prependTo('#chat-list').find('.autoLinkedImage').each(function() {
+      $(Utils.avatarLoad(updatedAvatars, formattedMessage)).addClass('deepHistoryMessge').attr('id', messages[i].messageID).prependTo('#chat-list').find('.autoLinkedImage').each(function() {
         getImageSize($(this), function(width, height) {
           scrollChatByHeight(height);
         });
@@ -3689,7 +3214,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       }
 
       formattedMessage = formatChatMessage(messageTag, messageTagColour, messages[i].userID, messages[i].username, messages[i].content, messages[i].accountName, messages[i].guest, messages[i].timestamp, messages[i].systemName, messages[i].avatar, null, highlighted, messageIP);
-      $(avatarLoad(formattedMessage)).addClass('deepHistoryMessge').attr('id', messages[i].messageID).appendTo('#chat-list').find('.autoLinkedImage').each(function() {
+      $(Utils.avatarLoad(updatedAvatars, formattedMessage)).addClass('deepHistoryMessge').attr('id', messages[i].messageID).appendTo('#chat-list').find('.autoLinkedImage').each(function() {
         getImageSize($(this), function(width, height) {
           scrollChatByHeight(height);
         });
@@ -3856,7 +3381,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     if (!$('#disc' + data.discID).length) {
       var message = strip_tags(data.lastMessage);
       var discussionName = strip_tags(data.discussionName);
-      var discussionPreviewMessage = strip_bbcode(message);
+      var discussionPreviewMessage = Utils.strip_bbcode(message);
       var discussionHTML = `
       <div class="discussion" id="disc${data.discID}">
           <div class="discussion-title">${discussionName}</div>
@@ -3869,7 +3394,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
     if (!$('#disc' + data.discID).length) {
       var message = strip_tags(data.lastMessage);
       var discussionName = strip_tags(data.name);
-      var discussionPreviewMessage = strip_bbcode(message);
+      var discussionPreviewMessage = Utils.strip_bbcode(message);
       var discussionHTML = `
       <div class="discussion" id="disc${data.discID}">
           <div class="discussion-title">${discussionName}</div>
@@ -4038,7 +3563,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
           $('#disc' + discID).find('.discussion-alert').show();
 
           // Send browser-notification
-          notifyMe(discID, rawUsername, strip_bbcode(msgRaw), $('#disc' + discID).children('.discussion-title').text());
+          notifyMe(discID, rawUsername, Utils.strip_bbcode(msgRaw), $('#disc' + discID).children('.discussion-title').text());
         }
 
         // Only for highlighting. We don't want this for setting_discussionAlertEnabled as it will literally
@@ -4072,7 +3597,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       // message.
       /*if (bottom)
         chat.scrollTop = chat.scrollHeight;*/
-      updateChatScroll();
+      chatScrollBar.update();
     } else {
       // This is necessary to avoid duplicate messages saved
       if (discussionMessages[discID]) {
@@ -4086,7 +3611,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
           var chat = document.getElementById('phase-main-chat-messages');
           if (chat.scrollTop < (chat.scrollHeight - chat.offsetHeight - 50))
             bottom = false;
-          $(avatarLoad(formattedMessage)).appendTo('#phase-main-chat-messages-list').find('.autoLinkedImage').each(function() {
+          $(Utils.avatarLoad(updatedAvatars, formattedMessage)).appendTo('#phase-main-chat-messages-list').find('.autoLinkedImage').each(function() {
             getImageSize($(this), function(width, height) {
               scrollChatByHeight(height);
             });
@@ -4108,7 +3633,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
             }
 
             chat.scrollTop = chat.scrollHeight;
-            updateChatScroll();
+            chatScrollBar.update();
           }
         }
 
@@ -4120,7 +3645,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
         }
         discussionMessages[discID].push(formattedMessage);
 
-        $('#disc' + discID).children('.discussion-preview').html((username !== null ? (htmlspecialchars(username) + ': ') : '') + strip_bbcode(msg.replace(/<(?:.|\n)*?>/gm, '')));
+        $('#disc' + discID).children('.discussion-preview').html((username !== null ? (htmlspecialchars(username) + ': ') : '') + Utils.strip_bbcode(msg.replace(/<(?:.|\n)*?>/gm, '')));
 
         // If we haven't received the list, this will create a duplicate, so therefore the if statement avoids such
         if (discussionListReceived && $('#disc' + discID).length) {
@@ -4129,7 +3654,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
         }
       } else {
         // While we do not store the message, we must update the recent message text to reflect the new message
-        $('#disc' + discID).children('.discussion-preview').html((username !== null ? (htmlspecialchars(username) + ': ') : '') + strip_bbcode(msg.replace(/<(?:.|\n)*?>/gm, '')));
+        $('#disc' + discID).children('.discussion-preview').html((username !== null ? (htmlspecialchars(username) + ': ') : '') + Utils.strip_bbcode(msg.replace(/<(?:.|\n)*?>/gm, '')));
 
         // If we haven't received the list, this will create a duplicate, so therefore the if statement avoids such
         if (discussionListReceived && $('#disc' + discID).length) {
@@ -4231,7 +3756,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       } else {
         var message = $(inProgressMessage).find('.chat-message-content');
         if (liveTyping[id].length <= 500)
-          message.html(bbcode(liveTyping[id]));
+          message.html(Utils.bbcode(liveTyping[id]));
         else
           message.html(liveTyping[id]);
         message.find('.autoLinkedImage').each(function() {
@@ -4246,7 +3771,7 @@ define(['item', 'phone', 'vendor/socketcluster.min', 'jquery', 'vendor/moment', 
       // message.
       if (bottom)
         chat.scrollTop = chat.scrollHeight;
-      updateChatScroll();
+      chatScrollBar.update();
     } else {
       showSpinner(discID);
     }
