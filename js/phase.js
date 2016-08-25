@@ -129,13 +129,6 @@ define(['scrollbar', 'utils', 'item', 'phone', 'vendor/socketcluster.min', 'jque
     });
   };
 
-  // Shortcuts
-  requirejs(['vendor/jquery.hotkeys'], function() {
-    $(document).bind('keydown', 'ctrl+q', function() {
-      toggleDiscussionListView();
-    });
-  });
-
   function notifyMe(discID, username, msg, title) {
     if (lastNotification !== null) {
       lastNotification.close();
