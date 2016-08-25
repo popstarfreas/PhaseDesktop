@@ -10,6 +10,7 @@ process.argv.forEach(function(val, index, array) {
 });
 
 var electron = require('electron');
+
 // Module to control application life.
 var app = electron.app;
 
@@ -21,8 +22,9 @@ var BrowserWindow = electron.BrowserWindow;
 var mainWindow;
 
 function createWindow() {
+
   // Create the browser window.
-  mainWindow = new BrowserWindow({ show: false});
+  mainWindow = new BrowserWindow({ show: false, icon: 'icons/phase.png'});
 
   // Remove the toolbar menu
   mainWindow.setMenu(null);
@@ -38,7 +40,7 @@ function createWindow() {
 
   // Open the DevTools.
   if (isDev) {
-    mainWindow.webContents.openDevTools();
+    mainWindow.webContents.openDevTools({detach: true});
   }
 
   mainWindow.once('ready-to-show', () => {
