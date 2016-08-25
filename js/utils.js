@@ -1,4 +1,4 @@
-define(['jquery', 'Item'], function($, Item) {
+define(['jquery', 'item'], function($, Item) {
   var Utils = {
     strip_bbcode: function(text) {
       var search = [
